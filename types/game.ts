@@ -18,6 +18,7 @@ export interface Game {
   user_progress?: {
     score: number;
     completed: boolean;
+    time_spent?: number;
   } | null;
 }
 

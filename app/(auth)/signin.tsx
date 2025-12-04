@@ -8,9 +8,10 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Modal,
 } from 'react-native';
 import { Link } from 'expo-router';
-import { Eye, EyeOff, LogIn } from 'lucide-react-native';
+import { Eye, EyeOff, LogIn, AlertTriangle } from 'lucide-react-native';
 import { Image } from 'react-native';
 import { useAppDispatch } from '@/hooks/useAppDispatch';
 import { useAppSelector } from '@/hooks/useAppSelector';
@@ -21,6 +22,7 @@ export default function SignInScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [errorVisible, setErrorVisible] = useState(false);
   const dispatch = useAppDispatch();
   const { loading, error } = useAppSelector((state) => state.auth);
 
@@ -29,6 +31,10 @@ export default function SignInScreen() {
       dispatch(clearError());
     };
   }, []);
+
+  useEffect(() => {
+    setErrorVisible(!!error);
+  }, [error]);
 
   const handleSignIn = () => {
     if (!email || !password) return;
@@ -43,18 +49,41 @@ export default function SignInScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
           <Image
-            source={require('@/assets/images/Gemini_Generated_Image_9boqtv9boqtv9boq.png')}
+            source={require('@/assets/images/logo.png')}
             style={styles.logo}
             resizeMode="contain"
           />
-          <Text style={styles.title}>Uzay Kaşifi</Text>
+          <Text style={styles.title}>Küçük Kaşif</Text>
           <Text style={styles.subtitle}>Hoş Geldin!</Text>
         </View>
 
         {error && (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{error}</Text>
-          </View>
+          <Modal
+            transparent
+            visible={errorVisible}
+            animationType="fade"
+            onRequestClose={() => {
+              setErrorVisible(false);
+              dispatch(clearError());
+            }}
+          >
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalContent}>
+                <AlertTriangle size={28} color={Colors.warmPink} />
+                <Text style={styles.modalTitle}>Hata</Text>
+                <Text style={styles.modalMessage}>{error}</Text>
+                <TouchableOpacity
+                  style={styles.modalButton}
+                  onPress={() => {
+                    setErrorVisible(false);
+                    dispatch(clearError());
+                  }}
+                >
+                  <Text style={styles.modalButtonText}>Tamam</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
         )}
 
         <View style={styles.form}>
@@ -145,8 +174,8 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   logo: {
-    width: 120,
-    height: 120,
+    width: 160,
+    height: 160,
     marginBottom: 16,
   },
   title: {
@@ -171,6 +200,44 @@ const styles = StyleSheet.create({
     color: Colors.warmPink,
     fontSize: 14,
     fontWeight: '500',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: '85%',
+    backgroundColor: Colors.background,
+    borderRadius: 16,
+    padding: 20,
+    alignItems: 'center',
+    gap: 12,
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.2)',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: Colors.text,
+  },
+  modalMessage: {
+    fontSize: 14,
+    color: Colors.warmPink,
+    textAlign: 'center',
+  },
+  modalButton: {
+    marginTop: 8,
+    backgroundColor: Colors.primary,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+  },
+  modalButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '700',
   },
   form: {
     marginBottom: 24,

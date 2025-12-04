@@ -1,25 +1,28 @@
 {
   "expo": {
-    "name": "Uzay Kaşifi",
-    "slug": "uzay-kasifi",
+    "name": "Küçük Kaşif",
+    "slug": "kucuk-kasif",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/Gemini_Generated_Image_9boqtv9boqtv9boq.png",
+    "icon": "./assets/images/logo.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/images/Gemini_Generated_Image_9boqtv9boqtv9boq.png",
+      "image": "./assets/images/logo.png",
       "resizeMode": "contain",
       "backgroundColor": "#41317A"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.uzay.kasifi"
+      "bundleIdentifier": "com.uzay.kasifi",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/Gemini_Generated_Image_9boqtv9boqtv9boq.png",
+        "foregroundImage": "./assets/images/logo.png",
         "backgroundColor": "#41317A"
       },
       "package": "com.uzay.kasifi"
@@ -27,11 +30,22 @@
     "web": {
       "bundler": "metro",
       "output": "single",
-      "favicon": "./assets/images/Gemini_Generated_Image_9boqtv9boqtv9boq.png"
+      "favicon": "./assets/images/logo.png"
     },
-    "plugins": ["expo-router", "expo-font", "expo-web-browser"],
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      "expo-web-browser"
+    ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "e1b28a80-fe07-445d-8996-a2bb3c240907"
+      }
+    },
+    "owner": "aybarc"
   }
 }

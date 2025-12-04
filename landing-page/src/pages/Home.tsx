@@ -21,7 +21,7 @@ export default function Home() {
 
       <section style={styles.features}>
         <div style={styles.container}>
-          <h2 style={styles.sectionTitle}>Neden Uzay Kaşifi?</h2>
+          <h2 style={styles.sectionTitle}>Neden Küçük Kaşif?</h2>
           <div style={styles.featureGrid}>
             <div style={styles.featureCard}>
               <div style={styles.featureIcon}>🎮</div>
@@ -99,7 +99,7 @@ export default function Home() {
         <div style={styles.container}>
           <h2 style={styles.ctaTitle}>Hazır mısınız?</h2>
           <p style={styles.ctaText}>
-            Çocuğunuzun eğlenerek öğrenmesi için hemen Uzay Kaşifi'ni indirin
+            Çocuğunuzun eğlenerek öğrenmesi için hemen Küçük Kaşif'i indirin
           </p>
           <Link to="/download" style={styles.ctaButton}>
             Ücretsiz İndir

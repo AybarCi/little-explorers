@@ -16,7 +16,7 @@ export default function Terms() {
             <section style={styles.section}>
               <h2 style={styles.sectionTitle}>1. Şartların Kabulü</h2>
               <p style={styles.text}>
-                Uzay Kaşifi uygulamasını kullanarak, bu kullanım şartlarını kabul etmiş olursunuz.
+                Küçük Kaşif uygulamasını kullanarak, bu kullanım şartlarını kabul etmiş olursunuz.
                 Bu şartları kabul etmiyorsanız, lütfen uygulamayı kullanmayınız.
               </p>
             </section>
@@ -52,7 +52,7 @@ export default function Terms() {
             <section style={styles.section}>
               <h2 style={styles.sectionTitle}>3. Fikri Mülkiyet Hakları</h2>
               <p style={styles.text}>
-                Uzay Kaşifi uygulamasındaki tüm içerik, tasarım, logo, grafik, oyunlar ve
+                Küçük Kaşif uygulamasındaki tüm içerik, tasarım, logo, grafik, oyunlar ve
                 yazılımlar telif hakkı ve diğer fikri mülkiyet yasaları ile korunmaktadır.
               </p>
               <ul style={styles.list}>
@@ -67,7 +67,7 @@ export default function Terms() {
               <h2 style={styles.sectionTitle}>4. Hizmet Sunumu</h2>
               <h3 style={styles.subsectionTitle}>4.1 Hizmet Garantisi</h3>
               <p style={styles.text}>
-                Uzay Kaşifi uygulaması "olduğu gibi" sunulmaktadır. Kesintisiz veya hatasız
+                Küçük Kaşif uygulaması "olduğu gibi" sunulmaktadır. Kesintisiz veya hatasız
                 hizmet garantisi vermiyoruz, ancak en iyi deneyimi sunmak için çalışıyoruz.
               </p>
 
@@ -86,7 +86,7 @@ export default function Terms() {
             <section style={styles.section}>
               <h2 style={styles.sectionTitle}>5. Ücretlendirme</h2>
               <p style={styles.text}>
-                Uzay Kaşifi şu anda tamamen ücretsiz bir uygulamadır. Gelecekte ücretli
+                Küçük Kaşif şu anda tamamen ücretsiz bir uygulamadır. Gelecekte ücretli
                 özellikler ekleyebiliriz, ancak temel oyun deneyimi her zaman ücretsiz kalacaktır.
               </p>
             </section>
@@ -176,7 +176,7 @@ export default function Terms() {
             <section style={styles.section}>
               <p style={styles.text}>
                 <em>
-                  Bu kullanım şartlarını kabul ederek, Uzay Kaşifi uygulamasını sorumlu ve
+                  Bu kullanım şartlarını kabul ederek, Küçük Kaşif uygulamasını sorumlu ve
                   güvenli bir şekilde kullanacağınızı taahhüt etmiş olursunuz.
                 </em>
               </p>

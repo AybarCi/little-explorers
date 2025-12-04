@@ -5,7 +5,7 @@ export default function Download() {
     <div style={styles.page}>
       <section style={styles.hero}>
         <div style={styles.container}>
-          <h1 style={styles.title}>Uzay Kaşifi'ni İndir</h1>
+          <h1 style={styles.title}>Küçük Kaşifi'i İndir</h1>
           <p style={styles.subtitle}>
             iOS ve Android cihazlarınızda ücretsiz olarak kullanın
           </p>
@@ -76,7 +76,7 @@ export default function Download() {
               <div style={styles.faqItem}>
                 <h4 style={styles.faqQuestion}>Uygulama ücretsiz mi?</h4>
                 <p style={styles.faqAnswer}>
-                  Evet, Uzay Kaşifi tamamen ücretsizdir. Hiçbir ücret veya
+                  Evet, Küçük Kaşif tamamen ücretsizdir. Hiçbir ücret veya
                   gizli maliyet yoktur.
                 </p>
               </div>

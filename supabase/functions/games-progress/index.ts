@@ -16,44 +16,19 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
+    const requestData = await req.json();
+    const { user_id, game_id, score, completed, time_spent, progress_data } = requestData;
+    console.log('Incoming progress payload:', { user_id, game_id, score, completed, time_spent });
+    const authHeader = req.headers.get('authorization') || req.headers.get('Authorization') || '';
+    const apikeyHeader = req.headers.get('apikey') || req.headers.get('Apikey') || '';
+    console.log('Request headers preview:', {
+      authorization: authHeader ? authHeader.substring(0, 16) + '...' : 'none',
+      apikey: apikeyHeader ? apikeyHeader.substring(0, 12) + '...' : 'none'
+    });
+
+    if (!user_id || !game_id) {
       return new Response(
-        JSON.stringify({ error: "Missing authorization header" }),
-        {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
-    }
-
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL") || "",
-      Deno.env.get("SUPABASE_ANON_KEY") || "",
-      {
-        global: {
-          headers: { Authorization: authHeader },
-        },
-      }
-    );
-
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
-      return new Response(
-        JSON.stringify({ error: "Unauthorized" }),
-        {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
-    }
-
-    const { game_id, score, completed, time_spent, progress_data } = await req.json();
-
-    if (!game_id) {
-      return new Response(
-        JSON.stringify({ error: "game_id is required" }),
+        JSON.stringify({ error: "user_id and game_id are required" }),
         {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -61,26 +36,65 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const { data: existingProgress } = await supabase
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL") || "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || Deno.env.get("SUPABASE_ANON_KEY") || ""
+    );
+
+    console.log('Processing game progress for user:', user_id, 'game:', game_id);
+
+    const { data: existingProgress, error: existingError } = await supabase
       .from("game_progress")
       .select("*")
-      .eq("user_id", user.id)
+      .eq("user_id", user_id)
       .eq("game_id", game_id)
       .maybeSingle();
 
+    if (existingError) {
+      console.error('Error checking existing progress:', existingError);
+      return new Response(
+        JSON.stringify({ error: "Failed to check existing progress" }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // Get user data
+    const { data: userData, error: userDataError } = await supabase
+      .from("users")
+      .select("total_points, completed_games_count")
+      .eq("id", user_id)
+      .single();
+
+    if (userDataError) {
+      console.error('Error fetching user data:', userDataError);
+    }
+
     let result;
+    let pointsToAdd = 0;
+    let completedGamesToAdd = 0;
 
     if (existingProgress) {
       const updateData: any = {
         updated_at: new Date().toISOString(),
       };
 
+      // Only update if new score is higher
       if (score !== undefined && score > (existingProgress.score || 0)) {
+        const previousScore = existingProgress.score || 0;
         updateData.score = score;
+        pointsToAdd = score - previousScore;
       }
 
-      if (completed !== undefined) {
-        updateData.completed = completed;
+      // First completion
+      if (completed && !existingProgress.completed) {
+        updateData.completed = true;
+        completedGamesToAdd = 1;
+        if (pointsToAdd === 0) {
+          pointsToAdd = score || 0;
+        }
       }
 
       if (time_spent !== undefined) {
@@ -91,6 +105,8 @@ Deno.serve(async (req: Request) => {
         updateData.progress_data = progress_data;
       }
 
+      console.log('Updating existing progress:', updateData);
+
       const { data, error } = await supabase
         .from("game_progress")
         .update(updateData)
@@ -98,15 +114,21 @@ Deno.serve(async (req: Request) => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Update error:', error);
+        throw new Error(`Failed to update progress: ${error.message}`);
+      }
       result = data;
+      console.log('Progress update result:', { id: result.id, score: result.score, completed: result.completed, time_spent: result.time_spent });
     } else {
+      console.log('Inserting new progress');
+
       const { data, error } = await supabase
         .from("game_progress")
         .insert([
           {
-            user_id: user.id,
-            game_id,
+            user_id: user_id,
+            game_id: game_id,
             score: score || 0,
             completed: completed || false,
             time_spent: time_spent || 0,
@@ -116,8 +138,38 @@ Deno.serve(async (req: Request) => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Insert error:', error);
+        throw new Error(`Failed to insert progress: ${error.message}`);
+      }
       result = data;
+      console.log('Progress insert result:', { id: result.id, score: result.score, completed: result.completed, time_spent: result.time_spent });
+      
+      pointsToAdd = score || 0;
+      completedGamesToAdd = completed ? 1 : 0;
+    }
+
+    // Update user stats
+    if (pointsToAdd > 0 || completedGamesToAdd > 0) {
+      const newTotalPoints = (userData?.total_points || 0) + pointsToAdd;
+      const newCompletedCount = (userData?.completed_games_count || 0) + completedGamesToAdd;
+
+      console.log('Updating user stats:', { newTotalPoints, newCompletedCount });
+
+      const { error: userUpdateError } = await supabase
+        .from("users")
+        .update({
+          total_points: newTotalPoints,
+          completed_games_count: newCompletedCount,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", user_id);
+
+      if (userUpdateError) {
+        console.error('Failed to update user stats:', userUpdateError);
+      } else {
+        console.log('User stats updated successfully');
+      }
     }
 
     return new Response(
@@ -128,8 +180,12 @@ Deno.serve(async (req: Request) => {
       }
     );
   } catch (error) {
+    console.error('Game progress error:', error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
+      JSON.stringify({ 
+        error: error instanceof Error ? error.message : "Unknown error",
+        details: error instanceof Error ? error.message : "Unknown error occurred while saving progress"
+      }),
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

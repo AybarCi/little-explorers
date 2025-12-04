@@ -21,7 +21,6 @@ export default function GameDetailScreen() {
   const [game, setGame] = useState<Game | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
   const { user, session } = useAppSelector((state) => state.auth);
   const router = useRouter();
 
@@ -46,13 +45,13 @@ export default function GameDetailScreen() {
         },
       });
 
-      const data = await response.json();
+      const data: any = await response.json();
 
       if (!response.ok) {
         throw new Error(data.error || 'Failed to fetch game');
       }
 
-      const foundGame = data.games?.find((g: Game) => g.id === id);
+      const foundGame = (data.games as Game[] | undefined)?.find((g: Game) => g.id === id);
 
       if (!foundGame) {
         throw new Error('Game not found');
@@ -66,39 +65,9 @@ export default function GameDetailScreen() {
     }
   };
 
-  const handleStartGame = async () => {
-    if (!game || !session) return;
-
-    setSaving(true);
-
-    try {
-      const response = await fetch(
-        `${SUPABASE_URL}/functions/v1/games-progress`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify({
-            game_id: game.id,
-            score: 0,
-            completed: false,
-            time_spent: 0,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to start game');
-      }
-
-      router.push(`/game/play/${game.id}` as any);
-    } catch (err) {
-      console.error('Start game error:', err);
-    } finally {
-      setSaving(false);
-    }
+  const handleStartGame = () => {
+    if (!game) return;
+    router.push(`/game/play/${game.id}` as any);
   };
 
   if (loading) {
@@ -184,18 +153,11 @@ export default function GameDetailScreen() {
 
       <View style={styles.footer}>
         <TouchableOpacity
-          style={[styles.startButton, saving && styles.startButtonDisabled]}
+          style={styles.startButton}
           onPress={handleStartGame}
-          disabled={saving}
         >
-          {saving ? (
-            <ActivityIndicator color="white" />
-          ) : (
-            <>
-              <Play size={20} color="white" fill="white" />
-              <Text style={styles.startButtonText}>Oyunu Başlat</Text>
-            </>
-          )}
+          <Play size={20} color="white" fill="white" />
+          <Text style={styles.startButtonText}>Oyunu Başlat</Text>
         </TouchableOpacity>
       </View>
     </View>

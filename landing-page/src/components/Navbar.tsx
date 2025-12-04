@@ -6,7 +6,7 @@ export default function Navbar() {
     <nav style={styles.nav}>
       <div style={styles.container}>
         <Link to="/" style={styles.logo}>
-          <span style={styles.logoText}>Uzay Kaşifi</span>
+          <span style={styles.logoText}>Küçük Kaşif</span>
         </Link>
         <div style={styles.links}>
           <Link to="/" style={styles.link}>Ana Sayfa</Link>

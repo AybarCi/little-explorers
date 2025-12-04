@@ -1,5 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "npm:@supabase/supabase-js@2.58.0";
+import { createClient } from '@supabase/supabase-js';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -16,11 +16,11 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { email, password, full_name, age_group } = await req.json();
+    const { refresh_token } = await req.json();
 
-    if (!email || !password || !full_name) {
+    if (!refresh_token) {
       return new Response(
-        JSON.stringify({ error: "Email, password and full name are required" }),
+        JSON.stringify({ error: "Refresh token is required" }),
         {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -30,27 +30,32 @@ Deno.serve(async (req: Request) => {
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL") || "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || ""
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || Deno.env.get("SUPABASE_ANON_KEY") || ""
     );
 
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
+    console.log('Attempting to refresh session with refresh_token:', refresh_token.substring(0, 10) + '...');
+    
+    // Use refresh token to get new session
+    const { data, error } = await supabase.auth.refreshSession({
+      refresh_token,
     });
 
-    if (authError) {
+    console.log('Refresh result:', { data: !!data, error: error?.message });
+
+    if (error) {
+      console.error('Refresh session error:', error);
       return new Response(
-        JSON.stringify({ error: authError.message }),
+        JSON.stringify({ error: error.message }),
         {
-          status: 400,
+          status: 401,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );
     }
 
-    if (!authData.user || !authData.session) {
+    if (!data.session || !data.user) {
       return new Response(
-        JSON.stringify({ error: "Failed to create user session" }),
+        JSON.stringify({ error: "Failed to refresh session" }),
         {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -58,25 +63,18 @@ Deno.serve(async (req: Request) => {
       );
     }
 
+    // Get user data from users table
     const { data: userData, error: userError } = await supabase
       .from("users")
-      .insert([
-        {
-          id: authData.user.id,
-          email: authData.user.email,
-          full_name,
-          age_group: age_group || "8-10",
-        },
-      ])
-      .select()
+      .select("*")
+      .eq("id", data.user.id)
       .single();
 
-    if (userError) {
-      await supabase.auth.admin.deleteUser(authData.user.id);
+    if (userError || !userData) {
       return new Response(
-        JSON.stringify({ error: userError.message }),
+        JSON.stringify({ error: "User profile not found" }),
         {
-          status: 500,
+          status: 404,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );
@@ -84,7 +82,7 @@ Deno.serve(async (req: Request) => {
 
     return new Response(
       JSON.stringify({
-        session: authData.session,
+        session: data.session,
         user: userData,
       }),
       {

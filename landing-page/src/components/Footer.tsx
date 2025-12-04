@@ -6,7 +6,7 @@ export default function Footer() {
     <footer style={styles.footer}>
       <div style={styles.container}>
         <div style={styles.section}>
-          <h3 style={styles.title}>Uzay Kaşifi</h3>
+          <h3 style={styles.title}>Küçük Kaşif</h3>
           <p style={styles.description}>
             Çocuklar için eğlenceli ve eğitici oyunlarla dolu bir uzay macerası
           </p>
@@ -27,7 +27,7 @@ export default function Footer() {
         </div>
       </div>
       <div style={styles.bottom}>
-        <p style={styles.copyright}>© 2024 Uzay Kaşifi. Tüm hakları saklıdır.</p>
+        <p style={styles.copyright}>© 2026 Küçük Kaşif. Tüm hakları saklıdır.</p>
       </div>
     </footer>
   );

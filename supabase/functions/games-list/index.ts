@@ -21,9 +21,12 @@ Deno.serve(async (req: Request) => {
     const difficulty = url.searchParams.get("difficulty");
     const userId = url.searchParams.get("user_id");
 
+    console.log('Games-list function called with params:', { category, difficulty, userId });
+    console.log('Full URL:', req.url);
+
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL") || "",
-      Deno.env.get("SUPABASE_ANON_KEY") || ""
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || Deno.env.get("SUPABASE_ANON_KEY") || ""
     );
 
     let query = supabase
@@ -53,19 +56,29 @@ Deno.serve(async (req: Request) => {
     }
 
     if (userId) {
-      const { data: progressData } = await supabase
+      console.log('Fetching game_progress for userId:', userId);
+      
+      const { data: progressData, error: progressError } = await supabase
         .from("game_progress")
-        .select("game_id, score, completed")
+        .select("game_id, score, completed, time_spent")
         .eq("user_id", userId);
 
+      console.log('Game_progress query result:', { progressData, progressError });
+      console.log('Progress data count:', progressData?.length || 0);
+
       const progressMap = new Map(
-        progressData?.map((p) => [p.game_id, { score: p.score, completed: p.completed }]) || []
+        progressData?.map((p:any) => [p.game_id, { score: p.score, completed: p.completed, time_spent: p.time_spent }]) || []
       );
 
-      const gamesWithProgress = games?.map((game) => ({
+      console.log('Progress map created with entries:', progressMap.size);
+
+      const gamesWithProgress = games?.map((game:any) => ({
         ...game,
         user_progress: progressMap.get(game.id) || null,
       }));
+
+      console.log('Games with progress created:', gamesWithProgress?.length || 0);
+      console.log('Sample game with progress:', gamesWithProgress?.[0]);
 
       return new Response(
         JSON.stringify({ games: gamesWithProgress }),

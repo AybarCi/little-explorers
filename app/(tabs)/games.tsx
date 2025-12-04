@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -6,12 +6,17 @@ import {
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
+  Animated,
+  Easing,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { useAppDispatch } from '@/hooks/useAppDispatch';
 import { useAppSelector } from '@/hooks/useAppSelector';
 import { fetchGames, setSelectedCategory } from '@/store/slices/gamesSlice';
 import { Game, GameCategory } from '@/types/game';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Colors } from '@/constants/colors';
 
 const categories: { value: GameCategory | 'all'; label: string }[] = [
   { value: 'all', label: 'Tümü' },
@@ -29,10 +34,60 @@ export default function GamesScreen() {
   const { games, loading, error, selectedCategory } = useAppSelector(
     (state) => state.games
   );
+  const headerAnim = useRef(new Animated.Value(0)).current;
+  const float1 = useRef(new Animated.Value(0)).current;
+  const float2 = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     loadGames();
   }, [selectedCategory, user?.id]);
+
+  useEffect(() => {
+    Animated.timing(headerAnim, {
+      toValue: 1,
+      duration: 700,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(float1, {
+          toValue: 1,
+          duration: 2400,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+        Animated.timing(float1, {
+          toValue: 0,
+          duration: 2400,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(float2, {
+          toValue: 1,
+          duration: 2200,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+        Animated.timing(float2, {
+          toValue: 0,
+          duration: 2200,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadGames();
+    }, [selectedCategory, user?.id, dispatch])
+  );
 
   const loadGames = () => {
     dispatch(
@@ -84,62 +139,101 @@ export default function GamesScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Oyunlar</Text>
+      <LinearGradient
+        colors={[Colors.spacePurple, Colors.energyOrange]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.headerGradient}
+      >
+        <Animated.View
+          style={{
+            transform: [{ translateY: headerAnim.interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) }],
+            opacity: headerAnim,
+          }}
+        >
+          <Text style={styles.titleDark}>Oyunlar</Text>
+        </Animated.View>
+        <Animated.View
+          style={[
+            styles.floatShape,
+            {
+              backgroundColor: Colors.secondary,
+              transform: [{ translateY: float1.interpolate({ inputRange: [0, 1], outputRange: [0, 10] }) }],
+              left: 24,
+              top: 38,
+            },
+          ]}
+        />
+        <Animated.View
+          style={[
+            styles.floatShapeSmall,
+            {
+              backgroundColor: Colors.highlight,
+              transform: [{ translateY: float2.interpolate({ inputRange: [0, 1], outputRange: [0, -8] }) }],
+              right: 28,
+              bottom: 18,
+            },
+          ]}
+        />
+      </LinearGradient>
+
+      <View style={styles.categoryContainer}>
+        <FlatList
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          data={categories}
+          keyExtractor={(item) => item.value}
+          renderItem={({ item }) => {
+            const isActive = selectedCategory === item.value;
+            return (
+              <TouchableOpacity
+                style={[styles.categoryButton, isActive && styles.categoryButtonActive]}
+                onPress={() => dispatch(setSelectedCategory(item.value))}
+              >
+                <Text
+                  style={[
+                    styles.categoryButtonText,
+                    isActive && styles.categoryButtonTextActive,
+                  ]}
+                >
+                  {item.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          }}
+          contentContainerStyle={styles.categoryList}
+        />
       </View>
 
-      <FlatList
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        data={categories}
-        keyExtractor={(item) => item.value}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={[
-              styles.categoryButton,
-              selectedCategory === item.value && styles.categoryButtonActive,
-            ]}
-            onPress={() => dispatch(setSelectedCategory(item.value))}
-          >
-            <Text
-              style={[
-                styles.categoryButtonText,
-                selectedCategory === item.value &&
-                  styles.categoryButtonTextActive,
-              ]}
-            >
-              {item.label}
-            </Text>
-          </TouchableOpacity>
+      <View style={styles.contentArea}>
+        {loading || error || games.length === 0 ? (
+          <View style={styles.centerContainer}>
+            {loading && <ActivityIndicator size="large" color={Colors.primary} />}
+            {error && (
+              <>
+                <Text style={styles.errorText}>{error}</Text>
+                <TouchableOpacity style={styles.retryButton} onPress={loadGames}>
+                  <Text style={styles.retryButtonText}>Tekrar Dene</Text>
+                </TouchableOpacity>
+              </>
+            )}
+            {!loading && !error && games.length === 0 && (
+              <>
+                <Text style={styles.emptyEmoji}>🎮</Text>
+                <Text style={styles.emptyText}>Bu kategoride oyun bulunamadı</Text>
+              </>
+            )}
+          </View>
+        ) : (
+          <FlatList
+            data={games}
+            keyExtractor={(item) => item.id}
+            renderItem={renderGame}
+            contentContainerStyle={styles.gamesList}
+            showsVerticalScrollIndicator={false}
+          />
         )}
-        contentContainerStyle={styles.categoryList}
-        style={styles.categoryContainer}
-      />
-
-      {loading ? (
-        <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#4299E1" />
-        </View>
-      ) : error ? (
-        <View style={styles.centerContainer}>
-          <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity style={styles.retryButton} onPress={loadGames}>
-            <Text style={styles.retryButtonText}>Tekrar Dene</Text>
-          </TouchableOpacity>
-        </View>
-      ) : games.length === 0 ? (
-        <View style={styles.centerContainer}>
-          <Text style={styles.emptyEmoji}>🎮</Text>
-          <Text style={styles.emptyText}>Bu kategoride oyun bulunamadı</Text>
-        </View>
-      ) : (
-        <FlatList
-          data={games}
-          keyExtractor={(item) => item.id}
-          renderItem={renderGame}
-          contentContainerStyle={styles.gamesList}
-        />
-      )}
+      </View>
     </View>
   );
 }
@@ -149,48 +243,74 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F7FAFC',
   },
-  header: {
+  headerGradient: {
     paddingHorizontal: 24,
     paddingTop: 60,
-    paddingBottom: 16,
-    backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    paddingBottom: 24,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    alignItems: 'center',
+    overflow: 'hidden',
   },
-  title: {
+  titleDark: {
     fontSize: 28,
-    fontWeight: '700',
-    color: '#2D3748',
+    fontWeight: '800',
+    color: Colors.pureWhite,
+    letterSpacing: 0.5,
+    textAlign: 'center',
+  },
+  floatShape: {
+    position: 'absolute',
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    opacity: 0.85,
+  },
+  floatShapeSmall: {
+    position: 'absolute',
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    opacity: 0.9,
   },
   categoryContainer: {
     backgroundColor: 'white',
+    height: 72,
     borderBottomWidth: 1,
     borderBottomColor: '#E2E8F0',
   },
   categoryList: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    alignItems: 'center',
   },
   categoryButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 0,
     marginHorizontal: 4,
-    borderRadius: 20,
-    backgroundColor: '#F7FAFC',
-    borderWidth: 1,
+    borderRadius: 24,
+    backgroundColor: '#F8FAFC',
+    borderWidth: 2,
     borderColor: '#E2E8F0',
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   categoryButtonActive: {
-    backgroundColor: '#4299E1',
-    borderColor: '#4299E1',
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
   },
   categoryButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#718096',
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#64748B',
+    letterSpacing: 0.3,
+    textAlign: 'center',
+    lineHeight: 18,
   },
   categoryButtonTextActive: {
     color: 'white',
+    lineHeight: 18,
   },
   centerContainer: {
     flex: 1,
@@ -214,7 +334,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   retryButton: {
-    backgroundColor: '#4299E1',
+    backgroundColor: Colors.secondary,
     borderRadius: 8,
     paddingHorizontal: 24,
     paddingVertical: 12,
@@ -223,6 +343,10 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
+  },
+  contentArea: {
+    flex: 1,
+    backgroundColor: '#F7FAFC',
   },
   gamesList: {
     padding: 16,
@@ -241,7 +365,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#4299E1',
+    backgroundColor: Colors.accent,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
@@ -303,7 +427,7 @@ const styles = StyleSheet.create({
   progressText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#4299E1',
+    color: Colors.primary,
   },
   completedText: {
     fontSize: 14,

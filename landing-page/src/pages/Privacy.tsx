@@ -16,7 +16,7 @@ export default function Privacy() {
             <section style={styles.section}>
               <h2 style={styles.sectionTitle}>1. Giriş</h2>
               <p style={styles.text}>
-                Uzay Kaşifi olarak, çocukların gizliliğini en üst düzeyde korumayı taahhüt ediyoruz.
+                Küçük Kaşif olarak, çocukların gizliliğini en üst düzeyde korumayı taahhüt ediyoruz.
                 Bu gizlilik politikası, uygulamamızı kullanırken hangi bilgileri topladığımızı,
                 nasıl kullandığımızı ve koruduğumuzu açıklamaktadır.
               </p>

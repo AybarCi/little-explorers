@@ -4,6 +4,8 @@ export interface User {
   full_name: string;
   age_group: string;
   created_at: string;
+  total_points?: number;
+  completed_games_count?: number;
 }
 
 export interface AuthSession {

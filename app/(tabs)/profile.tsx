@@ -1,19 +1,19 @@
+import { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { LogOut, Mail, Calendar, Trophy } from 'lucide-react-native';
 import { useAppDispatch } from '@/hooks/useAppDispatch';
 import { useAppSelector } from '@/hooks/useAppSelector';
 import { signout } from '@/store/slices/authSlice';
-
 export default function ProfileScreen() {
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
   const { games } = useAppSelector((state) => state.games);
-
-  const completedGames = games.filter((g) => g.user_progress?.completed).length;
-  const totalScore = games.reduce(
-    (sum, g) => sum + (g.user_progress?.score || 0),
-    0
-  );
+  
+  // Kullanıcı istatistiklerini doğrudan user objesinden al
+  const displayStats = {
+    total_points: user?.total_points || 0,
+    completed_games_count: user?.completed_games_count || 0,
+  };
 
   const handleSignOut = () => {
     dispatch(signout());
@@ -66,30 +66,30 @@ export default function ProfileScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>İstatistikler</Text>
         <View style={styles.statsGrid}>
-          <View style={styles.statCard}>
-            <View style={styles.statIconContainer}>
-              <Trophy size={28} color="#F6AD55" />
+            <View style={styles.statCard}>
+              <View style={styles.statIconContainer}>
+                <Trophy size={28} color="#F6AD55" />
+              </View>
+              <Text style={styles.statValue}>{displayStats.total_points}</Text>
+              <Text style={styles.statLabel}>Toplam Puan</Text>
             </View>
-            <Text style={styles.statValue}>{totalScore}</Text>
-            <Text style={styles.statLabel}>Toplam Puan</Text>
-          </View>
 
-          <View style={styles.statCard}>
-            <View style={styles.statIconContainer}>
-              <Trophy size={28} color="#48BB78" />
+            <View style={styles.statCard}>
+              <View style={styles.statIconContainer}>
+                <Trophy size={28} color="#48BB78" />
+              </View>
+              <Text style={styles.statValue}>{displayStats.completed_games_count}</Text>
+              <Text style={styles.statLabel}>Tamamlanan</Text>
             </View>
-            <Text style={styles.statValue}>{completedGames}</Text>
-            <Text style={styles.statLabel}>Tamamlanan</Text>
-          </View>
 
-          <View style={styles.statCard}>
-            <View style={styles.statIconContainer}>
-              <Trophy size={28} color="#4299E1" />
+            <View style={styles.statCard}>
+              <View style={styles.statIconContainer}>
+                <Trophy size={28} color="#4299E1" />
+              </View>
+              <Text style={styles.statValue}>{games.length}</Text>
+              <Text style={styles.statLabel}>Toplam Oyun</Text>
             </View>
-            <Text style={styles.statValue}>{games.length}</Text>
-            <Text style={styles.statLabel}>Toplam Oyun</Text>
           </View>
-        </View>
       </View>
 
       <View style={styles.section}>
@@ -195,6 +195,10 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: '#E2E8F0',
     marginVertical: 12,
+  },
+  loadingContainer: {
+    padding: 40,
+    alignItems: 'center',
   },
   statsGrid: {
     flexDirection: 'row',
