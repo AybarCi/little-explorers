@@ -71,7 +71,8 @@ Deno.serve(async (req: Request) => {
         time_spent,
         games (
           id,
-          category
+          category,
+          points
         )
       `)
             .eq("user_id", userId)
@@ -102,11 +103,20 @@ Deno.serve(async (req: Request) => {
             };
         });
 
-        // Calculate stats from progress data
+        // Calculate stats from progress data dynamically
         let totalTimeFromProgress = 0;
+        let calculatedTotalScore = 0;
+        let calculatedCompletedGames = 0;
 
         progressData?.forEach((progress: any) => {
             const category = progress.games?.category;
+            const points = progress.games?.points || 0;
+
+            // Increment global stats
+            calculatedCompletedGames++;
+            calculatedTotalScore += points;
+            totalTimeFromProgress += progress.time_spent || 0;
+
             if (!category) {
                 console.log('Progress without category:', progress);
                 return;
@@ -124,17 +134,39 @@ Deno.serve(async (req: Request) => {
 
             // Add to category stats (only completed games)
             categories[category].completed += 1;
-            categories[category].score += progress.score || 0;
+            categories[category].score += points; // Use game points for category score too
             categories[category].time += progress.time_spent || 0;
-
-            totalTimeFromProgress += progress.time_spent || 0;
         });
 
-        // Get values from users table
-        const totalScore = userData?.total_points || 0;
-        const completedGames = userData?.completed_games_count || 0;
+        // Use calculated values instead of users table values to ensure consistency
+        const totalScore = calculatedTotalScore;
+        const completedGames = calculatedCompletedGames;
         const totalGamesInApp = gamesData?.length || 0;
-        const averageScore = completedGames > 0 ? Math.round(totalScore / completedGames) : 0;
+
+        // Average score is based on the actual game scores (performance), not the base points
+        // Wait, if we want "Average Score" to reflect performance, we should average the 'score' field from game_progress
+        // Let's calculate average performance score
+        let totalPerformanceScore = 0;
+        progressData?.forEach((p: any) => {
+            totalPerformanceScore += p.score || 0;
+        });
+
+        const averageScore = completedGames > 0 ? Math.round(totalPerformanceScore / completedGames) : 0;
+
+        // Sync fixed values back to users table if they differ (self-healing)
+        if (userData && (userData.total_points !== totalScore || userData.completed_games_count !== completedGames)) {
+            console.log('Fixing user stats mismatch:', {
+                old: { points: userData.total_points, count: userData.completed_games_count },
+                new: { points: totalScore, count: completedGames }
+            });
+
+            supabase.from("users").update({
+                total_points: totalScore,
+                completed_games_count: completedGames
+            }).eq("id", userId).then(({ error }) => {
+                if (error) console.error('Failed to auto-fix user stats:', error);
+            });
+        }
 
         console.log('Final stats:', {
             totalScore,
