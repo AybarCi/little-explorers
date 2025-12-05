@@ -2,7 +2,7 @@
   "expo": {
     "name": "Küçük Kaşif",
     "slug": "kucuk-kasif",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/logo.png",
     "scheme": "myapp",
@@ -44,7 +44,9 @@
       "router": {},
       "eas": {
         "projectId": "e1b28a80-fe07-445d-8996-a2bb3c240907"
-      }
+      },
+      "supabaseUrl": "https://iovbamjyvnpucaljkrkf.supabase.co",
+      "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlvdmJhbWp5dm5wdWNhbGprcmtmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ2ODUwNTUsImV4cCI6MjA4MDI2MTA1NX0.aQl0Cas2cnRlyxRhnTtdMmuEWNW62b8b-bzPHVhEDAY"
     },
     "owner": "aybarc"
   }
