@@ -1,142 +1,12 @@
 import { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
+import { wordHuntWords } from '../../constants/gameData';
 
 interface WordHuntGameProps {
   wordCount: number;
   onComplete: (score: number) => void;
   ageGroup: string;
 }
-
-const wordsByAge: Record<string, Array<{ word: string; hint: string }>> = {
-  '5-7': [
-    { word: 'elma', hint: 'Kırmızı veya yeşil bir meyve' },
-    { word: 'top', hint: 'Onunla oynarız' },
-    { word: 'ev', hint: 'İçinde yaşarız' },
-    { word: 'ayak', hint: 'Yürümek için kullanırız' },
-    { word: 'göz', hint: 'Görmek için kullanırız' },
-    { word: 'kedi', hint: 'Miyavlayan hayvan' },
-    { word: 'köpek', hint: 'Havlayan hayvan' },
-    { word: 'kuş', hint: 'Uçan hayvan' },
-    { word: 'güneş', hint: 'Gökyüzünde parlayan' },
-    { word: 'ay', hint: 'Gece gökyüzünde görürüz' },
-    { word: 'araba', hint: 'Yolda giden taşıt' },
-    { word: 'ağaç', hint: 'Yeşil yapraklı bitki' },
-    { word: 'çiçek', hint: 'Güzel kokulu renkli bitki' },
-    { word: 'su', hint: 'İçeriz, temizleniriz' },
-    { word: 'baba', hint: 'Erkek ebeveyn' },
-    { word: 'anne', hint: 'Kadın ebeveyn' },
-    { word: 'bebek', hint: 'Küçük çocuk' },
-    { word: 'oyuncak', hint: 'Onunla oynarız' },
-    { word: 'yılan', hint: 'Sürünen hayvan' },
-    { word: 'balık', hint: 'Suda yaşayan hayvan' },
-    { word: 'kelebek', hint: 'Renkli uçan böcek' },
-    { word: 'arı', hint: 'Bal yapan böcek' },
-    { word: 'çanta', hint: 'Eşya taşırız' },
-    { word: 'ayakkabı', hint: 'Ayağa giyilir' },
-    { word: 'şapka', hint: 'Başa takılır' },
-    { word: 'eldiven', hint: 'Ele giyilir' },
-    { word: 'pasta', hint: 'Doğum gününde yeriz' },
-    { word: 'dondurma', hint: 'Soğuk tatlı' },
-    { word: 'süt', hint: 'Beyaz içecek' },
-    { word: 'ekmek', hint: 'Her gün yeriz' },
-  ],
-  '8-10': [
-    { word: 'kitap', hint: 'Okumak için kullanılır' },
-    { word: 'kalem', hint: 'Yazmak için kullanılır' },
-    { word: 'masa', hint: 'Üzerinde çalışırız' },
-    { word: 'sandalye', hint: 'Üzerinde otururuz' },
-    { word: 'bardak', hint: 'İçecek içmek için kullanılır' },
-    { word: 'tabak', hint: 'Yemek yemek için kullanılır' },
-    { word: 'pencere', hint: 'Dışarı bakmak için açarız' },
-    { word: 'kapı', hint: 'Odaya girmek için açarız' },
-    { word: 'lamba', hint: 'Işık verir' },
-    { word: 'saat', hint: 'Zamanı gösterir' },
-    { word: 'okul', hint: 'Ders yapılan yer' },
-    { word: 'öğretmen', hint: 'Ders anlatan kişi' },
-    { word: 'öğrenci', hint: 'Ders dinleyen kişi' },
-    { word: 'sınıf', hint: 'Derslerin yapıldığı oda' },
-    { word: 'defter', hint: 'Yazı yazdığımız' },
-    { word: 'silgi', hint: 'Yanlışları sileriz' },
-    { word: 'cetvel', hint: 'Düz çizgi çekeriz' },
-    { word: 'renk', hint: 'Resimlerde kullanırız' },
-    { word: 'müzik', hint: 'Kulağımızla dinleriz' },
-    { word: 'dans', hint: 'Müzikle hareket ederiz' },
-    { word: 'şarkı', hint: 'Söyleriz' },
-    { word: 'park', hint: 'Oyun oynarız' },
-    { word: 'salıncak', hint: 'Parkta sallanırız' },
-    { word: 'kaydırak', hint: 'Parkta kayarız' },
-    { word: 'bisiklet', hint: 'İki tekerlekli araç' },
-    { word: 'paten', hint: 'Tekerlekli ayakkabı' },
-    { word: 'deniz', hint: 'Büyük su kütlesi' },
-    { word: 'kumsal', hint: 'Deniz kenarında kum' },
-    { word: 'güneş', hint: 'Işık ve ısı verir' },
-    { word: 'yıldız', hint: 'Gece parlar' },
-  ],
-  '11-13': [
-    { word: 'bilgisayar', hint: 'Dijital işler için kullanılır' },
-    { word: 'telefon', hint: 'Konuşmak için kullanılır' },
-    { word: 'televizyon', hint: 'Program izlemek için kullanılır' },
-    { word: 'buzdolabı', hint: 'Yiyecekleri soğuk tutar' },
-    { word: 'klima', hint: 'Hava sıcaklığını ayarlar' },
-    { word: 'koltuk', hint: 'Rahatlıkla oturulan mobilya' },
-    { word: 'halı', hint: 'Zemini kaplar' },
-    { word: 'perde', hint: 'Pencereleri kaplar' },
-    { word: 'ayna', hint: 'Kendimizi görürüz' },
-    { word: 'dolap', hint: 'Eşyaları saklarız' },
-    { word: 'matematik', hint: 'Sayılar dersi' },
-    { word: 'fen', hint: 'Bilim dersi' },
-    { word: 'sosyal', hint: 'Toplum dersi' },
-    { word: 'tarih', hint: 'Geçmiş dersi' },
-    { word: 'coğrafya', hint: 'Yerler dersi' },
-    { word: 'İngilizce', hint: 'Yabancı dil' },
-    { word: 'resim', hint: 'Çizim dersi' },
-    { word: 'beden', hint: 'Spor dersi' },
-    { word: 'teknoloji', hint: 'Dijital araçlar dersi' },
-    { word: 'proje', hint: 'Araştırma çalışması' },
-    { word: 'deney', hint: 'Bilimsel test' },
-    { word: 'araştırma', hint: 'Bilgi toplama' },
-    { word: 'sunum', hint: 'Bilgileri anlatma' },
-    { word: 'rapor', hint: 'Yazılı belge' },
-    { word: 'grafik', hint: 'Görsel veri' },
-    { word: 'tablo', hint: 'Düzenli liste' },
-    { word: 'şema', hint: 'Görsel plan' },
-    { word: 'harita', hint: 'Yer gösterimi' },
-    { word: 'atlas', hint: 'Haritalar kitabı' },
-    { word: 'ansiklopedi', hint: 'Bilgi kitabı' },
-  ],
-  '14+': [
-    { word: 'algoritma', hint: 'Problem çözme adımları' },
-    { word: 'ekosistem', hint: 'Canlılar ve çevre ilişkisi' },
-    { word: 'metafor', hint: 'Benzetme yoluyla anlatım' },
-    { word: 'demokrasi', hint: 'Halkın yönetimi' },
-    { word: 'fotosentez', hint: 'Bitkilerin besin üretimi' },
-    { word: 'jeoloji', hint: 'Yer bilimi' },
-    { word: 'astronomi', hint: 'Gök cisimleri bilimi' },
-    { word: 'kültür', hint: 'Toplumun yaşam biçimi' },
-    { word: 'teknoloji', hint: 'Bilimsel ilerlemeler' },
-    { word: 'edebiyat', hint: 'Yazın sanatı' },
-    { word: 'felsefe', hint: 'Düşünce bilimi' },
-    { word: 'psikoloji', hint: 'Ruh bilimi' },
-    { word: 'sosyoloji', hint: 'Toplum bilimi' },
-    { word: 'antropoloji', hint: 'İnsan bilimi' },
-    { word: 'arkeoloji', hint: 'Eski eserler bilimi' },
-    { word: 'biyoloji', hint: 'Canlılar bilimi' },
-    { word: 'kimya', hint: 'Madde bilimi' },
-    { word: 'fizik', hint: 'Doğa bilimi' },
-    { word: 'genetik', hint: 'Kalıtım bilimi' },
-    { word: 'evrim', hint: 'Gelişim süreci' },
-    { word: 'hücre', hint: 'Canlı birimi' },
-    { word: 'atom', hint: 'Madde parçacığı' },
-    { word: 'molekül', hint: 'Atomların birleşimi' },
-    { word: 'enerji', hint: 'İş yapma gücü' },
-    { word: 'kuvvet', hint: 'Hareket ettirme' },
-    { word: 'kütle', hint: 'Madde miktarı' },
-    { word: 'hız', hint: 'Hareket hızı' },
-    { word: 'ivme', hint: 'Hız değişimi' },
-    { word: 'sürtünme', hint: 'Yüzey direnci' },
-    { word: 'yerçekimi', hint: 'Dünya çekimi' },
-  ],
-};
 
 export default function WordHuntGame({ wordCount, onComplete, ageGroup }: WordHuntGameProps) {
   const [currentWord, setCurrentWord] = useState(0);
@@ -147,10 +17,13 @@ export default function WordHuntGame({ wordCount, onComplete, ageGroup }: WordHu
   const [scrambledWord, setScrambledWord] = useState('');
 
   useEffect(() => {
-    const wordList = wordsByAge[ageGroup] || wordsByAge['8-10'];
-    const shuffled = [...wordList].sort(() => Math.random() - 0.5).slice(0, wordCount);
-    setSelectedWords(shuffled);
-  }, [ageGroup]);
+    // Get word list and shuffle to prevent repetition
+    const wordList = wordHuntWords[ageGroup] || wordHuntWords['8-10'];
+    const shuffled = [...wordList].sort(() => Math.random() - 0.5);
+    // Take exactly wordCount unique words
+    const selected = shuffled.slice(0, Math.min(wordCount, shuffled.length));
+    setSelectedWords(selected);
+  }, [ageGroup, wordCount]);
 
   useEffect(() => {
     if (selectedWords.length > 0) {

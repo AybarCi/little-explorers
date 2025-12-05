@@ -52,7 +52,7 @@ export default function Footer() {
         <div style={styles.linksSection}>
           <h4 style={styles.sectionTitle}>Hızlı Erişim</h4>
           <div style={styles.linksList}>
-            {quickLinks.map((link, index) => (
+            {quickLinks.map((link) => (
               <Link
                 key={link.path}
                 to={link.path}

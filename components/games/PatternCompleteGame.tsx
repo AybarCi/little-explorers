@@ -22,61 +22,89 @@ function generatePattern(ageGroup: string): Pattern {
 
   switch (type) {
     case 0: {
+      // Arithmetic sequence: 1, 3, 5, 7 -> 9
       const maxStart = ageGroup === '5-7' ? 3 : ageGroup === '8-10' ? 5 : 8;
-      const maxStep = ageGroup === '5-7' ? 1 : ageGroup === '8-10' ? 2 : 3;
+      const maxStep = ageGroup === '5-7' ? 2 : ageGroup === '8-10' ? 3 : 4;
       const start = Math.floor(Math.random() * maxStart) + 1;
       const step = Math.floor(Math.random() * maxStep) + 1;
       const sequence = Array.from({ length: 4 }, (_, i) => (start + i * step).toString());
-      const next = start + 4 * step;
-      const wrong1 = next + step;
-      const wrong2 = next - step;
-      const wrong3 = next + 1;
+      const correctAnswer = (start + 4 * step).toString();
+
+      // Generate distinct wrong answers
+      const wrongAnswers = new Set<string>();
+      wrongAnswers.add((start + 5 * step).toString());
+      wrongAnswers.add((start + 3 * step).toString());
+      wrongAnswers.add((start + 4 * step + 1).toString());
+      wrongAnswers.add((start + 4 * step - 1).toString());
+      wrongAnswers.delete(correctAnswer);
+
+      const options = [correctAnswer, ...Array.from(wrongAnswers).slice(0, 3)];
+      const shuffled = options.sort(() => Math.random() - 0.5);
+
       return {
         sequence,
-        options: [next.toString(), wrong1.toString(), wrong2.toString(), wrong3.toString()]
-          .sort(() => Math.random() - 0.5),
-        correctAnswer: 0,
+        options: shuffled,
+        correctAnswer: shuffled.indexOf(correctAnswer),
       };
     }
     case 1: {
+      // Shape pattern: 🔴🔵🟢🔴 -> 🔵
       const selectedShapes = [...shapes].sort(() => Math.random() - 0.5).slice(0, 3);
       const pattern = [];
       for (let i = 0; i < 4; i++) {
         pattern.push(selectedShapes[i % selectedShapes.length]);
       }
-      const next = selectedShapes[4 % selectedShapes.length];
-      const wrong = shapes.filter(s => !selectedShapes.includes(s)).slice(0, 3);
+      const correctAnswer = selectedShapes[4 % selectedShapes.length];
+      const wrongAnswers = shapes.filter(s => !selectedShapes.includes(s)).slice(0, 3);
+
+      const options = [correctAnswer, ...wrongAnswers];
+      const shuffled = options.sort(() => Math.random() - 0.5);
+
       return {
         sequence: pattern,
-        options: [next, ...wrong].sort(() => Math.random() - 0.5),
-        correctAnswer: 0,
+        options: shuffled,
+        correctAnswer: shuffled.indexOf(correctAnswer),
       };
     }
     case 2: {
-      const start = Math.floor(Math.random() * 3);
+      // Letter sequence: A, B, C, D -> E
+      const start = Math.floor(Math.random() * 4); // 0-3 to allow more variety
       const sequence = Array.from({ length: 4 }, (_, i) => letters[start + i]);
-      const next = letters[start + 4];
-      const wrong1 = letters[start + 5] || 'Z';
-      const wrong2 = letters[start + 2];
-      const wrong3 = letters[start + 6] || 'Y';
+      const correctAnswer = letters[start + 4];
+
+      // Generate wrong letters that are not in sequence
+      const wrongAnswers = letters.filter((l, idx) =>
+        idx !== start + 4 && !sequence.includes(l)
+      ).slice(0, 3);
+
+      const options = [correctAnswer, ...wrongAnswers];
+      const shuffled = options.sort(() => Math.random() - 0.5);
+
       return {
         sequence,
-        options: [next, wrong1, wrong2, wrong3].sort(() => Math.random() - 0.5),
-        correctAnswer: 0,
+        options: shuffled,
+        correctAnswer: shuffled.indexOf(correctAnswer),
       };
     }
     default: {
+      // Geometric sequence: 2, 4, 8, 16 -> 32
       const start = Math.floor(Math.random() * 2) + 1;
       const sequence = Array.from({ length: 4 }, (_, i) => (start * 2 ** i).toString());
-      const next = start * 2 ** 4;
-      const wrong1 = next * 2;
-      const wrong2 = next / 2;
-      const wrong3 = next + start;
+      const correctAnswer = (start * 2 ** 4).toString();
+
+      const wrongAnswers = new Set<string>();
+      wrongAnswers.add((start * 2 ** 5).toString());
+      wrongAnswers.add((start * 2 ** 3).toString());
+      wrongAnswers.add((start * 2 ** 4 + start).toString());
+      wrongAnswers.delete(correctAnswer);
+
+      const options = [correctAnswer, ...Array.from(wrongAnswers).slice(0, 3)];
+      const shuffled = options.sort(() => Math.random() - 0.5);
+
       return {
         sequence,
-        options: [next.toString(), wrong1.toString(), wrong2.toString(), wrong3.toString()]
-          .sort(() => Math.random() - 0.5),
-        correctAnswer: 0,
+        options: shuffled,
+        correctAnswer: shuffled.indexOf(correctAnswer),
       };
     }
   }
@@ -91,10 +119,6 @@ export default function PatternCompleteGame({ patternCount, onComplete, ageGroup
 
   useEffect(() => {
     const generated = Array.from({ length: patternCount }, () => generatePattern(ageGroup));
-    generated.forEach(p => {
-      const correctOption = p.options[0];
-      p.correctAnswer = p.options.indexOf(correctOption);
-    });
     setPatterns(generated);
   }, []);
 
@@ -219,7 +243,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 24,
-    paddingBottom: 40,
+    paddingBottom: 100,
   },
   progressBar: {
     height: 8,
@@ -299,8 +323,8 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   optionButton: {
-    width: '45%',
-    aspectRatio: 1,
+    width: 80,
+    height: 80,
     backgroundColor: 'white',
     borderRadius: 12,
     justifyContent: 'center',
@@ -321,9 +345,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF5F5',
   },
   optionText: {
-    fontSize: 36,
+    fontSize: 28,
     fontWeight: '700',
     color: '#2D3748',
+    textAlign: 'center',
   },
   checkMark: {
     position: 'absolute',

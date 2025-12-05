@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
 import { Colors } from '../constants/colors';
 import { useEffect, useState } from 'react';
+import logo from '../assets/logo.png';
+import { FaGamepad, FaUserGraduate, FaTrophy, FaPalette, FaCalculator, FaBrain, FaBullseye, FaPuzzlePiece, FaRocket, FaStar } from 'react-icons/fa';
 
 export default function Home() {
   const [scrollY, setScrollY] = useState(0);
@@ -46,6 +48,9 @@ export default function Home() {
           transform: visibleSections.has('hero') ? 'translateY(0)' : 'translateY(50px)',
           transition: 'all 1s cubic-bezier(0.4, 0, 0.2, 1)'
         }}>
+          <div style={styles.logoContainer}>
+            <img src={logo} alt="Küçük Kaşif Logo" style={styles.heroLogo} />
+          </div>
           <h1 style={styles.heroTitle}>
             <span style={styles.heroTitleGradient}>Uzayın Derinliklerinde</span>
             <br />
@@ -67,17 +72,17 @@ export default function Home() {
             ...styles.floatingElement,
             ...styles.floatingElement1,
             transform: `translateY(${scrollY * -0.3}px) rotate(${scrollY * 0.1}deg)`
-          }}>🚀</div>
+          }}><FaRocket style={styles.floatingIcon} /></div>
           <div style={{
             ...styles.floatingElement,
             ...styles.floatingElement2,
             transform: `translateY(${scrollY * -0.2}px) rotate(${scrollY * -0.05}deg)`
-          }}>⭐</div>
+          }}><FaStar style={styles.floatingIcon} /></div>
           <div style={{
             ...styles.floatingElement,
             ...styles.floatingElement3,
             transform: `translateY(${scrollY * -0.4}px) rotate(${scrollY * 0.08}deg)`
-          }}>�</div>
+          }}><FaStar style={styles.floatingIcon} /></div>
         </div>
       </section>
 
@@ -94,10 +99,10 @@ export default function Home() {
           </h2>
           <div style={styles.featureGrid}>
             {[
-              { icon: '🎮', title: 'Eğlenceli Oyunlar', text: 'Matematik, hafıza, dikkat ve problem çözme oyunları ile eğlenirken öğrenin' },
-              { icon: '👶', title: 'Yaşa Uygun İçerik', text: '5-7, 8-10, 11-13 ve 14+ yaş gruplarına özel olarak tasarlanmış zorluk seviyeleri' },
-              { icon: '🏆', title: 'İlerleme Takibi', text: 'Çocuğunuzun gelişimini takip edin, başarılarını kutlayın' },
-              { icon: '🎨', title: 'Renkli ve Güvenli', text: 'Çocuklar için tasarlanmış renkli arayüz, reklamlar yok, tamamen güvenli' }
+              { icon: <FaGamepad />, title: 'Eğlenceli Oyunlar', text: 'Matematik, hafıza, dikkat ve problem çözme oyunları ile eğlenirken öğrenin' },
+              { icon: <FaUserGraduate />, title: 'Yaşa Uygun İçerik', text: '5-7, 8-10, 11-13 ve 14+ yaş gruplarına özel olarak tasarlanmış zorluk seviyeleri' },
+              { icon: <FaTrophy />, title: 'İlerleme Takibi', text: 'Çocuğunuzun gelişimini takip edin, başarılarını kutlayın' },
+              { icon: <FaPalette />, title: 'Renkli ve Güvenli', text: 'Çocuklar için tasarlanmış renkli arayüz, reklamlar yok, tamamen güvenli' }
             ].map((feature, index) => (
               <div key={index} style={{
                 ...styles.featureCard,
@@ -135,10 +140,10 @@ export default function Home() {
           </h2>
           <div style={styles.gamesGrid}>
             {[
-              { icon: '🔢', title: 'Matematik Oyunları', text: 'Toplama, çıkarma, çarpma ve bölme işlemlerini eğlenceli oyunlarla öğrenin. Sayı kavramları, problem çözme ve hızlı hesaplama becerilerini geliştirin.' },
-              { icon: '🧠', title: 'Hafıza Oyunları', text: 'Kısa süreli ve uzun süreli hafızayı güçlendiren oyunlar. Görsel ve işitsel hafıza egzersizleri ile dikkat süresini artırın.' },
-              { icon: '🎯', title: 'Dikkat Oyunları', text: 'Konsantrasyon ve odaklanma becerilerini geliştiren aktiviteler. Görsel algı, ayrıntılara dikkat ve hızlı karar verme yeteneklerini pekiştirin.' },
-              { icon: '🧩', title: 'Problem Çözme', text: 'Mantıksal düşünme ve analitik zeka geliştiren bulmacalar. Strateji oluşturma, örüntü tanıma ve yaratıcı çözümler bulma becerilerini güçlendirin.' }
+              { icon: <FaCalculator />, title: 'Matematik Oyunları', text: 'Toplama, çıkarma, çarpma ve bölme işlemlerini eğlenceli oyunlarla öğrenin. Sayı kavramları, problem çözme ve hızlı hesaplama becerilerini geliştirin.' },
+              { icon: <FaBrain />, title: 'Hafıza Oyunları', text: 'Kısa süreli ve uzun süreli hafızayı güçlendiren oyunlar. Görsel ve işitsel hafıza egzersizleri ile dikkat süresini artırın.' },
+              { icon: <FaBullseye />, title: 'Dikkat Oyunları', text: 'Konsantrasyon ve odaklanma becerilerini geliştiren aktiviteler. Görsel algı, ayrıntılara dikkat ve hızlı karar verme yeteneklerini pekiştirin.' },
+              { icon: <FaPuzzlePiece />, title: 'Problem Çözme', text: 'Mantıksal düşünme ve analitik zeka geliştiren bulmacalar. Strateji oluşturma, örüntü tanıma ve yaratıcı çözümler bulma becerilerini güçlendirin.' }
             ].map((game, index) => (
               <div key={index} style={{
                 ...styles.gameCard,
@@ -198,12 +203,12 @@ const styles: Record<string, React.CSSProperties> = {
     overflowX: 'hidden',
   },
   hero: {
-    background: `linear-gradient(135deg, ${Colors.spacePurple} 0%, ${Colors.darkPurple} 70%, ${Colors.lightPurple} 100%)`,
+    background: `linear-gradient(135deg, ${Colors.spacePurple} 0%, ${Colors.darkPurple} 50%, ${Colors.spacePurple} 100%)`,
     color: Colors.pureWhite,
-    padding: '8rem 2rem 6rem',
+    padding: '6rem 2rem 4rem',
     textAlign: 'center',
     position: 'relative',
-    minHeight: '100vh',
+    minHeight: '90vh',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -214,44 +219,56 @@ const styles: Record<string, React.CSSProperties> = {
     position: 'relative',
     zIndex: 2,
   },
+  logoContainer: {
+    marginBottom: '2rem',
+    textAlign: 'center',
+  },
+  heroLogo: {
+    width: '180px',
+    height: '180px',
+    objectFit: 'contain',
+    filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.3))',
+    transition: 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+  },
   heroTitle: {
-    fontSize: '4rem',
-    fontWeight: '800',
+    fontSize: '3.5rem',
+    fontWeight: '700',
     marginBottom: '1.5rem',
-    lineHeight: '1.1',
-    letterSpacing: '-0.02em',
+    lineHeight: '1.2',
+    letterSpacing: '-0.01em',
+    color: Colors.pureWhite,
   },
   heroTitleGradient: {
-    background: `linear-gradient(45deg, ${Colors.brightYellow}, ${Colors.energyOrange})`,
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    backgroundClip: 'text',
+    color: Colors.brightYellow,
+    fontWeight: '800',
   },
   heroSubtitle: {
-    fontSize: '1.5rem',
+    fontSize: '1.3rem',
     lineHeight: '1.6',
     marginBottom: '3rem',
-    opacity: 0.9,
-    fontWeight: '300',
+    opacity: 0.95,
+    fontWeight: '400',
     maxWidth: '700px',
     marginLeft: 'auto',
     marginRight: 'auto',
+    color: Colors.pureWhite,
   },
   heroButton: {
     display: 'inline-block',
-    backgroundColor: Colors.energyOrange,
+    backgroundColor: Colors.spacePurple,
     color: Colors.pureWhite,
-    padding: '1.25rem 3rem',
-    borderRadius: '50px',
+    padding: '1rem 2.5rem',
+    borderRadius: '8px',
     textDecoration: 'none',
-    fontSize: '1.2rem',
+    fontSize: '1.1rem',
     fontWeight: '600',
     position: 'relative',
     overflow: 'hidden',
     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-    boxShadow: '0 8px 25px rgba(245, 126, 55, 0.4)',
+    boxShadow: '0 4px 20px rgba(65, 49, 122, 0.3)',
     border: 'none',
     cursor: 'pointer',
+    letterSpacing: '0.5px',
   },
   buttonText: {
     position: 'relative',
@@ -293,27 +310,30 @@ const styles: Record<string, React.CSSProperties> = {
     bottom: '30%',
     left: '80%',
   },
+  floatingIcon: {
+    fontSize: '2rem',
+    opacity: 0.3,
+    filter: 'blur(1px)',
+  },
   features: {
-    padding: '8rem 2rem',
-    backgroundColor: Colors.pureWhite,
+    padding: '6rem 2rem',
+    backgroundColor: '#f8f9fa',
   },
   container: {
     maxWidth: '1200px',
     margin: '0 auto',
   },
   sectionTitle: {
-    fontSize: '3.5rem',
-    fontWeight: '800',
+    fontSize: '2.5rem',
+    fontWeight: '700',
     textAlign: 'center',
-    marginBottom: '4rem',
-    letterSpacing: '-0.02em',
+    marginBottom: '3rem',
+    letterSpacing: '-0.01em',
     color: Colors.spacePurple,
   },
   titleGradient: {
-    background: `linear-gradient(45deg, ${Colors.energyOrange}, ${Colors.warmPink})`,
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    backgroundClip: 'text',
+    color: Colors.energyOrange,
+    fontWeight: '800',
   },
   featureGrid: {
     display: 'grid',
@@ -322,13 +342,14 @@ const styles: Record<string, React.CSSProperties> = {
   },
   featureCard: {
     textAlign: 'center',
-    padding: '3rem 2rem',
-    borderRadius: '24px',
-    backgroundColor: '#f8f9fa',
+    padding: '2.5rem 1.5rem',
+    borderRadius: '12px',
+    backgroundColor: Colors.pureWhite,
     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
     position: 'relative',
     overflow: 'hidden',
-    border: '1px solid rgba(0,0,0,0.05)',
+    border: '1px solid rgba(65, 49, 122, 0.1)',
+    boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
   },
   featureIconWrapper: {
     marginBottom: '1.5rem',
@@ -351,8 +372,8 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: '400',
   },
   games: {
-    padding: '8rem 2rem',
-    backgroundColor: '#fafafa',
+    padding: '6rem 2rem',
+    backgroundColor: Colors.pureWhite,
   },
   gamesGrid: {
     display: 'grid',
@@ -360,14 +381,14 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '2.5rem',
   },
   gameCard: {
-    backgroundColor: Colors.pureWhite,
-    padding: '2.5rem',
-    borderRadius: '24px',
-    boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+    backgroundColor: '#f8f9fa',
+    padding: '2rem',
+    borderRadius: '12px',
+    boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
     transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
     position: 'relative',
     overflow: 'hidden',
-    border: '1px solid rgba(0,0,0,0.05)',
+    border: '1px solid rgba(65, 49, 122, 0.1)',
   },
   gameIconWrapper: {
     marginBottom: '1.5rem',
@@ -398,47 +419,48 @@ const styles: Record<string, React.CSSProperties> = {
     transition: 'opacity 0.3s ease',
   },
   cta: {
-    background: `linear-gradient(135deg, ${Colors.energyOrange} 0%, ${Colors.warmPink} 100%)`,
+    background: `linear-gradient(135deg, ${Colors.spacePurple} 0%, ${Colors.darkPurple} 100%)`,
     color: Colors.pureWhite,
-    padding: '8rem 2rem',
+    padding: '6rem 2rem',
     textAlign: 'center',
   },
   ctaTitle: {
-    fontSize: '3.5rem',
-    fontWeight: '800',
+    fontSize: '2.5rem',
+    fontWeight: '700',
     marginBottom: '1.5rem',
-    letterSpacing: '-0.02em',
+    letterSpacing: '-0.01em',
+    color: Colors.pureWhite,
   },
   ctaTitleGradient: {
-    background: `linear-gradient(45deg, ${Colors.brightYellow}, ${Colors.pureWhite})`,
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    backgroundClip: 'text',
+    color: Colors.brightYellow,
+    fontWeight: '800',
   },
   ctaText: {
-    fontSize: '1.5rem',
-    marginBottom: '3rem',
+    fontSize: '1.2rem',
+    marginBottom: '2.5rem',
     opacity: 0.95,
-    fontWeight: '300',
+    fontWeight: '400',
     maxWidth: '600px',
     marginLeft: 'auto',
     marginRight: 'auto',
+    color: Colors.pureWhite,
   },
   ctaButton: {
     display: 'inline-block',
-    backgroundColor: Colors.pureWhite,
-    color: Colors.energyOrange,
-    padding: '1.25rem 3rem',
-    borderRadius: '50px',
+    backgroundColor: Colors.energyOrange,
+    color: Colors.pureWhite,
+    padding: '1rem 2.5rem',
+    borderRadius: '8px',
     textDecoration: 'none',
-    fontSize: '1.2rem',
+    fontSize: '1.1rem',
     fontWeight: '600',
     position: 'relative',
     overflow: 'hidden',
     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-    boxShadow: '0 8px 25px rgba(0,0,0,0.2)',
+    boxShadow: '0 4px 20px rgba(245, 126, 55, 0.3)',
     border: 'none',
     cursor: 'pointer',
+    letterSpacing: '0.5px',
   },
 };
 
@@ -449,31 +471,38 @@ styleSheet.textContent = `
     left: 100%;
   }
   
+  .heroLogo:hover {
+    transform: scale(1.05) !important;
+  }
+  
   .featureCard:hover {
-    transform: translateY(-8px) !important;
-    box-shadow: 0 12px 40px rgba(0,0,0,0.15) !important;
+    transform: translateY(-4px) !important;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1) !important;
+    border-color: rgba(65, 49, 122, 0.2) !important;
   }
   
   .featureCard:hover .featureIcon {
-    transform: scale(1.1) !important;
+    transform: scale(1.05) !important;
   }
   
   .gameCard:hover {
-    transform: translateY(-12px) !important;
-    box-shadow: 0 16px 50px rgba(0,0,0,0.15) !important;
+    transform: translateY(-4px) !important;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1) !important;
+    border-color: rgba(65, 49, 122, 0.2) !important;
   }
   
   .gameCard:hover .gameCardGlow {
     opacity: 1 !important;
   }
   
-  .heroButton:hover, .ctaButton:hover {
-    transform: translateY(-4px) !important;
-    box-shadow: 0 12px 35px rgba(245, 126, 55, 0.6) !important;
+  .heroButton:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 25px rgba(65, 49, 122, 0.4) !important;
   }
   
   .ctaButton:hover {
-    box-shadow: 0 12px 35px rgba(0,0,0,0.3) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 25px rgba(245, 126, 55, 0.4) !important;
   }
 `;
 document.head.appendChild(styleSheet);

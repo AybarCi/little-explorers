@@ -205,6 +205,7 @@ export default function PlayGameScreen() {
         );
 
       case 'memory_match':
+      case 'memory_cards':
         return (
           <MemoryGame
             cardCount={gameData.cardCount || 12}
@@ -232,6 +233,7 @@ export default function PlayGameScreen() {
         );
 
       case 'picture_memory':
+      case 'image_memory':
         return (
           <PictureMemoryGame
             itemCount={gameData.itemCount || 16}
@@ -250,6 +252,7 @@ export default function PlayGameScreen() {
         );
 
       case 'pattern_complete':
+      case 'pattern':
         return (
           <PatternCompleteGame
             patternCount={gameData.patternCount || 10}
@@ -259,6 +262,7 @@ export default function PlayGameScreen() {
         );
 
       case 'science_quiz':
+      case 'experiments':
         return (
           <ScienceQuizGame
             questionCount={gameData.questionCount || 15}
@@ -278,6 +282,7 @@ export default function PlayGameScreen() {
         );
 
       case 'color_tube':
+      case 'color_lab':
         return (
           <ColorTubeGame
             onComplete={handleGameComplete}
@@ -285,6 +290,7 @@ export default function PlayGameScreen() {
         );
 
       case 'picture-word':
+      case 'emoji_word':
         return (
           <PictureWordGame
             onComplete={handleGameComplete}

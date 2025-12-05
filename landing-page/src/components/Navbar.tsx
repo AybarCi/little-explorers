@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Colors } from '../constants/colors';
 import { useState, useEffect } from 'react';
+import logo from '../assets/logo.png';
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -40,12 +41,12 @@ export default function Navbar() {
               e.currentTarget.style.transform = 'scale(1)';
             }}
           >
-            <div style={styles.logoIcon}>🚀</div>
+            <img src={logo} alt="Küçük Kaşif Logo" style={styles.logoImage} />
             <span style={styles.logoText}>Küçük Kaşif</span>
           </Link>
           
           <div style={styles.desktopLinks}>
-            {navItems.map((item, index) => (
+            {navItems.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
@@ -86,7 +87,7 @@ export default function Navbar() {
           opacity: isMenuOpen ? 1 : 0
         }}>
           <div style={styles.mobileMenuContainer}>
-            {navItems.map((item, index) => (
+            {navItems.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
@@ -118,16 +119,16 @@ const styles: Record<string, React.CSSProperties> = {
     left: 0,
     right: 0,
     zIndex: 1000,
-    backgroundColor: 'rgba(65, 49, 122, 0.95)',
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
     backdropFilter: 'blur(20px)',
     WebkitBackdropFilter: 'blur(20px)',
-    borderBottom: '1px solid rgba(255,255,255,0.1)',
+    borderBottom: '1px solid rgba(65, 49, 122, 0.1)',
     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
     padding: '1rem 0',
   },
   navScrolled: {
-    backgroundColor: 'rgba(65, 49, 122, 0.98)',
-    boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.98)',
+    boxShadow: '0 2px 12px rgba(0,0,0,0.1)',
     padding: '0.75rem 0',
   },
   container: {
@@ -145,15 +146,18 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '0.75rem',
     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   },
-  logoIcon: {
-    fontSize: '2rem',
+  logoImage: {
+    width: '40px',
+    height: '40px',
+    objectFit: 'contain',
+    filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))',
     transition: 'transform 0.3s ease',
   },
   logoText: {
-    color: Colors.pureWhite,
-    fontSize: '1.75rem',
+    color: Colors.spacePurple,
+    fontSize: '1.5rem',
     fontWeight: '700',
-    letterSpacing: '-0.02em',
+    letterSpacing: '-0.01em',
   },
   desktopLinks: {
     display: 'flex',
@@ -161,7 +165,7 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
   },
   link: {
-    color: Colors.pureWhite,
+    color: Colors.spacePurple,
     textDecoration: 'none',
     fontSize: '1rem',
     fontWeight: '500',
@@ -188,7 +192,7 @@ const styles: Record<string, React.CSSProperties> = {
   hamburgerLine: {
     width: '25px',
     height: '2px',
-    backgroundColor: Colors.pureWhite,
+    backgroundColor: Colors.spacePurple,
     transition: 'all 0.3s ease',
   },
   mobileMenu: {
@@ -197,10 +201,10 @@ const styles: Record<string, React.CSSProperties> = {
     top: '100%',
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(65, 49, 122, 0.98)',
+    backgroundColor: 'rgba(255, 255, 255, 0.98)',
     backdropFilter: 'blur(20px)',
     WebkitBackdropFilter: 'blur(20px)',
-    borderTop: '1px solid rgba(255,255,255,0.1)',
+    borderTop: '1px solid rgba(65, 49, 122, 0.1)',
     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   },
   mobileMenuContainer: {
@@ -210,7 +214,7 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '1.5rem',
   },
   mobileLink: {
-    color: Colors.pureWhite,
+    color: Colors.spacePurple,
     textDecoration: 'none',
     fontSize: '1.1rem',
     fontWeight: '500',
@@ -239,7 +243,7 @@ styleSheet.textContent = `
     left: 0;
     width: 0;
     height: 2px;
-    background: linear-gradient(45deg, ${Colors.brightYellow}, ${Colors.energyOrange});
+    background: ${Colors.spacePurple};
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   
@@ -253,8 +257,8 @@ styleSheet.textContent = `
     opacity: 1 !important;
   }
   
-  .logo:hover .logoIcon {
-    transform: rotate(15deg) scale(1.1);
+  .logo:hover .logoImage {
+    transform: scale(1.1);
   }
   
   @media (max-width: 768px) {
