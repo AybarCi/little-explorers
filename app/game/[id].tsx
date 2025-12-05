@@ -13,8 +13,14 @@ import { ArrowLeft, Play } from 'lucide-react-native';
 import { useAppSelector } from '@/hooks/useAppSelector';
 import { Game } from '@/types/game';
 
-const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL;
-const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+import Constants from 'expo-constants';
+
+const SUPABASE_URL =
+  (Constants.expoConfig?.extra as any)?.supabaseUrl ||
+  process.env.EXPO_PUBLIC_SUPABASE_URL;
+const SUPABASE_ANON_KEY =
+  (Constants.expoConfig?.extra as any)?.supabaseAnonKey ||
+  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
 export default function GameDetailScreen() {
   const { id } = useLocalSearchParams();
