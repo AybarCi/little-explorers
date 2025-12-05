@@ -1,18 +1,12 @@
 import { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { letterSortWords } from '../../constants/gameData';
 
 interface LetterSortGameProps {
   wordCount: number;
   onComplete: (score: number) => void;
   ageGroup: string;
 }
-
-const wordsByAge: Record<string, string[]> = {
-  '5-7': ['ev', 'top', 'köpek', 'kedi', 'elma', 'gül', 'ayı', 'kuş', 'kaşık', 'çatal', 'masa', 'kupa', 'saat', 'ayak', 'göz', 'baş', 'süt', 'ekmek', 'peynir', 'balık', 'yılan', 'fare', 'koyun', 'ördek', 'tavuk', 'böcek', 'arı', 'karınca', 'çiçek', 'yaprak'],
-  '8-10': ['araba', 'okul', 'deniz', 'kuşlar', 'ağaç', 'güneş', 'bulut', 'portakal', 'muz', 'çilek', 'kiraz', 'üzüm', 'havuç', 'domates', 'salatalık', 'patates', 'soğan', 'sarımsak', 'biber', 'patlıcan', 'kabak', 'marul', 'lahana', 'karnabahar', 'brokoli', 'ıspanak', 'roka', 'maydanoz', 'nane', 'kekik'],
-  '11-13': ['bilgisayar', 'televizyon', 'buzdolabı', 'otobüs', 'bisiklet', 'sandalye', 'pencere', 'masa', 'lamba', 'kitaplık', 'dolap', 'halı', 'perde', 'yastık', 'battaniye', 'çarşaf', 'havlu', 'sabun', 'şampuan', 'diş fırçası', 'tarak', 'ayna', 'saat', 'resim', 'vazo', 'saksı', 'televizyon', 'radyo', 'telefon', 'tablet'],
-  '14+': ['teknoloji', 'algoritma', 'matematik', 'edebiyat', 'demokrasi', 'fotosentez', 'kültür', 'astronomi', 'jeoloji', 'biyoloji', 'kimya', 'fizik', 'coğrafya', 'tarih', 'felsefe', 'psikoloji', 'sosyoloji', 'ekonomi', 'siyaset', 'hukuk', 'tıp', 'mühendislik', 'mimarlık', 'sanat', 'müzik', 'edebiyat', 'şiir', 'hikaye', 'roman', 'deneme'],
-};
 
 export default function LetterSortGame({ wordCount, onComplete, ageGroup }: LetterSortGameProps) {
   const [currentWord, setCurrentWord] = useState(0);
@@ -23,10 +17,12 @@ export default function LetterSortGame({ wordCount, onComplete, ageGroup }: Lett
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
 
   useEffect(() => {
-    const wordList = wordsByAge[ageGroup] || wordsByAge['8-10'];
-    const shuffled = [...wordList].sort(() => Math.random() - 0.5).slice(0, wordCount);
-    setSelectedWords(shuffled);
-  }, [ageGroup]);
+    const wordList = letterSortWords[ageGroup] || letterSortWords['8-10'];
+    const shuffled = [...wordList].sort(() => Math.random() - 0.5);
+    // Take unique words without repetition
+    const selected = shuffled.slice(0, Math.min(wordCount, shuffled.length));
+    setSelectedWords(selected);
+  }, [ageGroup, wordCount]);
 
   useEffect(() => {
     if (selectedWords.length > 0) {

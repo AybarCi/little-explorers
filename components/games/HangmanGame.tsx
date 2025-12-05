@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
+import { wordHuntWords } from '../../constants/gameData';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -9,153 +10,35 @@ interface HangmanGameProps {
   ageGroup: string;
 }
 
-const wordsByAge: Record<string, Array<{ word: string; hint: string }>> = {
-  '5-7': [
-    { word: 'KEDI', hint: 'Miyavlayan hayvan' },
-    { word: 'KÖPEK', hint: 'Havlayan hayvan' },
-    { word: 'ELMA', hint: 'Kırmızı bir meyve' },
-    { word: 'TOP', hint: 'Onunla oynarız' },
-    { word: 'GÜNEŞ', hint: 'Gökyüzünde parlayan' },
-    { word: 'AY', hint: 'Gece görürüz' },
-    { word: 'DENIZ', hint: 'Çok su var' },
-    { word: 'AĞAÇ', hint: 'Yeşil yaprakları var' },
-    { word: 'KUŞ', hint: 'Uçan hayvan' },
-    { word: 'BALIK', hint: 'Suda yaşar' },
-    { word: 'ARABA', hint: 'Yolda giden taşıt' },
-    { word: 'EV', hint: 'İçinde yaşarız' },
-    { word: 'ANNE', hint: 'Kadın ebeveyn' },
-    { word: 'BABA', hint: 'Erkek ebeveyn' },
-    { word: 'SU', hint: 'İçeriz' },
-    { word: 'EKMEK', hint: 'Her gün yeriz' },
-    { word: 'ÇİÇEK', hint: 'Güzel kokulu' },
-    { word: 'YILDIZ', hint: 'Gece parlar' },
-    { word: 'BULUT', hint: 'Gökte beyaz' },
-    { word: 'YAĞMUR', hint: 'Gökten yağar' },
-    { word: 'KAR', hint: 'Kışın beyaz' },
-    { word: 'KELEBEK', hint: 'Renkli uçar' },
-    { word: 'ARI', hint: 'Bal yapar' },
-    { word: 'TAVŞAN', hint: 'Uzun kulaklı' },
-    { word: 'FİL', hint: 'Çok büyük' },
-    { word: 'ASLAN', hint: 'Ormanın kralı' },
-    { word: 'AYAKKABI', hint: 'Ayağa giyilir' },
-    { word: 'ŞAPKA', hint: 'Başa takılır' },
-    { word: 'PASTA', hint: 'Doğum günü' },
-    { word: 'BALON', hint: 'Uçar, renkli' },
-  ],
-  '8-10': [
-    { word: 'BİLGİSAYAR', hint: 'İnternete girdiğimiz cihaz' },
-    { word: 'OKUL', hint: 'Ders yaptığımız yer' },
-    { word: 'KALEM', hint: 'Yazmak için kullanırız' },
-    { word: 'DEFTER', hint: 'Yazı yazdığımız' },
-    { word: 'FUTBOL', hint: 'Topla oynanan spor' },
-    { word: 'MÜZİK', hint: 'Ses ve ritim sanatı' },
-    { word: 'OYUN', hint: 'Eğlence için yapılan' },
-    { word: 'ARKADAŞ', hint: 'Beraber oynadığımız' },
-    { word: 'AİLE', hint: 'Anne baba ve çocuklar' },
-    { word: 'HAYVAN', hint: 'Canlı varlıklar' },
-    { word: 'ÖĞRETMEN', hint: 'Ders anlatan' },
-    { word: 'ÖĞRENCİ', hint: 'Ders dinleyen' },
-    { word: 'SINIF', hint: 'Ders yapılan oda' },
-    { word: 'KİTAP', hint: 'Okumak için' },
-    { word: 'SİLGİ', hint: 'Yanlış siler' },
-    { word: 'CETVEL', hint: 'Çizgi çeker' },
-    { word: 'RENK', hint: 'Boyama için' },
-    { word: 'RESİM', hint: 'Çizim yaparız' },
-    { word: 'SPOR', hint: 'Fiziksel aktivite' },
-    { word: 'SAĞLIK', hint: 'İyi olma hali' },
-    { word: 'HASTANE', hint: 'Tedavi yeri' },
-    { word: 'DOKTOR', hint: 'Tedavi eder' },
-    { word: 'HEMŞIRE', hint: 'Bakım yapar' },
-    { word: 'ECZANE', hint: 'İlaç satılan' },
-    { word: 'MARKET', hint: 'Alışveriş yeri' },
-    { word: 'PARK', hint: 'Oyun alanı' },
-    { word: 'BAHÇE', hint: 'Çiçek yeri' },
-    { word: 'KÜTÜPHANE', hint: 'Kitap evi' },
-    { word: 'MÜZİK', hint: 'Melodi sanatı' },
-    { word: 'DANS', hint: 'Hareket sanatı' },
-  ],
-  '11-13': [
-    { word: 'TEKNOLOJİ', hint: 'Bilim ve cihazlar' },
-    { word: 'MATEMATİK', hint: 'Sayılar dersi' },
-    { word: 'COĞRAFYA', hint: 'Ülkeler ve haritalar' },
-    { word: 'EDEBİYAT', hint: 'Kitaplar ve yazarlar' },
-    { word: 'TARİH', hint: 'Geçmiş olaylar' },
-    { word: 'KİMYA', hint: 'Elementler ve reaksiyonlar' },
-    { word: 'FİZİK', hint: 'Enerji ve madde' },
-    { word: 'BİYOLOJİ', hint: 'Canlılar bilimi' },
-    { word: 'MÜHENDİS', hint: 'Teknik işler yapan' },
-    { word: 'DOKTOR', hint: 'Hastaları iyileştiren' },
-    { word: 'AVUKAT', hint: 'Hukuk uzmanı' },
-    { word: 'ÖĞRETMEN', hint: 'Eğitim veren' },
-    { word: 'MIMAR', hint: 'Bina tasarlayan' },
-    { word: 'SANATÇI', hint: 'Sanat yapan' },
-    { word: 'YAZAR', hint: 'Kitap yazan' },
-    { word: 'GAZETECİ', hint: 'Haber yapan' },
-    { word: 'SPORCU', hint: 'Spor yapan' },
-    { word: 'BİLİM', hint: 'Araştırma alanı' },
-    { word: 'SANAT', hint: 'Yaratıcılık' },
-    { word: 'KÜLTÜR', hint: 'Toplum değerleri' },
-    { word: 'MEDYA', hint: 'İletişim araçları' },
-    { word: 'İNTERNET', hint: 'Ağ sistemi' },
-    { word: 'UYGULAMA', hint: 'Yazılım programı' },
-    { word: 'VERİTABANI', hint: 'Bilgi deposu' },
-    { word: 'KODLAMA', hint: 'Program yazma' },
-    { word: 'TASARIM', hint: 'Görsel planlama' },
-    { word: 'PROJE', hint: 'Planlı çalışma' },
-    { word: 'ARAŞTIRMA', hint: 'Bilgi toplama' },
-    { word: 'DENEY', hint: 'Bilimsel test' },
-    { word: 'GÖZLEM', hint: 'Dikkatle bakma' },
-  ],
-  '14+': [
-    { word: 'ALGORİTMA', hint: 'Problem çözme adımları' },
-    { word: 'EKOSİSTEM', hint: 'Canlılar ve çevre dengesi' },
-    { word: 'FOTOSENTEZ', hint: 'Bitkilerin besin üretimi' },
-    { word: 'DEMOKRASİ', hint: 'Halkın yönetim şekli' },
-    { word: 'KÜRESELLEŞME', hint: 'Dünya çapında bütünleşme' },
-    { word: 'EVRENSEL', hint: 'Tüm dünyayı kapsayan' },
-    { word: 'FELSEFECİ', hint: 'Bilgelik seven düşünür' },
-    { word: 'ASTRONOMİ', hint: 'Gök cisimleri bilimi' },
-    { word: 'JEOLOJİ', hint: 'Yer bilimi' },
-    { word: 'PSİKOLOJİ', hint: 'Ruh bilimi' },
-    { word: 'SOSYOLOJİ', hint: 'Toplum bilimi' },
-    { word: 'ANTROPOLOJİ', hint: 'İnsan bilimi' },
-    { word: 'ARKEOLOJİ', hint: 'Eski eserler bilimi' },
-    { word: 'GENETİK', hint: 'Kalıtım bilimi' },
-    { word: 'EVRİM', hint: 'Gelişim teorisi' },
-    { word: 'MOLEKÜL', hint: 'Atom birleşimi' },
-    { word: 'ATOM', hint: 'Madde parçası' },
-    { word: 'ENERJİ', hint: 'İş yapma gücü' },
-    { word: 'KUVVET', hint: 'Hareket ettirme' },
-    { word: 'KÜTLE', hint: 'Madde miktarı' },
-    { word: 'İVME', hint: 'Hız değişimi' },
-    { word: 'SÜRTÜNME', hint: 'Yüzey direnci' },
-    { word: 'YERÇEKİMİ', hint: 'Dünya çekimi' },
-    { word: 'KUANTUM', hint: 'En küçük birim' },
-    { word: 'RELATIF', hint: 'Göreceli' },
-    { word: 'PARADOKS', hint: 'Çelişkili durum' },
-    { word: 'HİPOTEZ', hint: 'Bilimsel tahmin' },
-    { word: 'ANALİZ', hint: 'Ayrıntılı inceleme' },
-    { word: 'SENTEZİ', hint: 'Birleştirme' },
-    { word: 'DENGE', hint: 'Uyum hali' },
-  ],
-};
-
 const TURKISH_ALPHABET = 'ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ'.split('');
+
+// Turkish uppercase function
+const toTurkishUpper = (str: string): string => {
+  return str
+    .replace(/i/g, 'İ')
+    .replace(/ı/g, 'I')
+    .toUpperCase();
+};
 
 export default function HangmanGame({ wordCount, onComplete, ageGroup }: HangmanGameProps) {
   const [currentWord, setCurrentWord] = useState(0);
   const [score, setScore] = useState(0);
-  const [selectedWords, setSelectedWords] = useState<typeof wordsByAge['8-10']>([]);
+  const [selectedWords, setSelectedWords] = useState<Array<{ word: string; hint: string }>>([]);
   const [guessedLetters, setGuessedLetters] = useState<Set<string>>(new Set());
   const [wrongGuesses, setWrongGuesses] = useState(0);
   const [gameState, setGameState] = useState<'playing' | 'won' | 'lost'>('playing');
   const maxWrongGuesses = 6;
 
   useEffect(() => {
-    const wordList = wordsByAge[ageGroup] || wordsByAge['8-10'];
-    const shuffled = [...wordList].sort(() => Math.random() - 0.5).slice(0, wordCount);
-    setSelectedWords(shuffled);
-  }, [ageGroup]);
+    const wordList = wordHuntWords[ageGroup] || wordHuntWords['8-10'];
+    const shuffled = [...wordList].sort(() => Math.random() - 0.5);
+    // Convert to uppercase and take unique words
+    const selected = shuffled.slice(0, Math.min(wordCount, shuffled.length)).map(w => ({
+      word: toTurkishUpper(w.word),
+      hint: w.hint
+    }));
+    setSelectedWords(selected);
+  }, [ageGroup, wordCount]);
 
   const currentWordData = selectedWords[currentWord];
   const word = currentWordData?.word || '';
