@@ -6,11 +6,11 @@ import { RootState } from '../index';
 import Constants from 'expo-constants';
 
 const SUPABASE_URL =
-  process.env.EXPO_PUBLIC_SUPABASE_URL ||
-  (Constants.expoConfig?.extra as any)?.supabaseUrl;
+  (Constants.expoConfig?.extra as any)?.supabaseUrl ||
+  process.env.EXPO_PUBLIC_SUPABASE_URL;
 const SUPABASE_ANON_KEY =
-  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ||
-  (Constants.expoConfig?.extra as any)?.supabaseAnonKey;
+  (Constants.expoConfig?.extra as any)?.supabaseAnonKey ||
+  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
 interface GamesState {
   games: Game[];

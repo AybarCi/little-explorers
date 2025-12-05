@@ -18,7 +18,7 @@ const isSessionInactive = (lastActivityAt: number): boolean => {
   return (now - lastActivityAt) > INACTIVITY_TIMEOUT;
 };
 
-const getSessionMetadata = async (): Promise<{createdAt: number; lastActivityAt: number} | null> => {
+const getSessionMetadata = async (): Promise<{ createdAt: number; lastActivityAt: number } | null> => {
   try {
     const metadata = await SecureStore.getItemAsync('auth_session_metadata');
     return metadata ? JSON.parse(metadata) : null;
@@ -42,11 +42,11 @@ const updateSessionActivity = async (): Promise<void> => {
 };
 
 const SUPABASE_URL =
-  process.env.EXPO_PUBLIC_SUPABASE_URL ||
-  (Constants.expoConfig?.extra as any)?.supabaseUrl;
+  (Constants.expoConfig?.extra as any)?.supabaseUrl ||
+  process.env.EXPO_PUBLIC_SUPABASE_URL;
 const SUPABASE_ANON_KEY =
-  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ||
-  (Constants.expoConfig?.extra as any)?.supabaseAnonKey;
+  (Constants.expoConfig?.extra as any)?.supabaseAnonKey ||
+  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
 interface AuthState {
   user: User | null;
@@ -92,7 +92,7 @@ export const restoreSession = createAsyncThunk(
       if (storedSession && storedUser) {
         const session = JSON.parse(storedSession) as AuthSession;
         const user = JSON.parse(storedUser) as User;
-        
+
         console.log('Session details:', {
           hasAccessToken: !!session.access_token,
           hasRefreshToken: !!session.refresh_token,
@@ -105,7 +105,7 @@ export const restoreSession = createAsyncThunk(
         // Check if session is expired
         if (session.expires_at <= Math.floor(Date.now() / 1000)) {
           console.log('Session is expired, attempting to refresh...');
-          
+
           // Try to refresh session using refresh token
           if (session.refresh_token) {
             console.log('Attempting refresh with token:', session.refresh_token.substring(0, 10) + '...');
@@ -121,7 +121,7 @@ export const restoreSession = createAsyncThunk(
                 stack: refreshError instanceof Error ? refreshError.stack : 'No stack',
                 payload: refreshError instanceof Error ? refreshError : JSON.stringify(refreshError)
               });
-              
+
               // Check if it's a network error or auth error
               if (refreshError instanceof Error) {
                 if (refreshError.message.includes('fetch')) {
@@ -130,9 +130,9 @@ export const restoreSession = createAsyncThunk(
                   console.error('Unauthorized - refresh token may be expired');
                 }
               }
-              
+
               console.log('Clearing stored data after failed refresh');
-              
+
               // Provide more specific error information
               let errorMessage = 'Oturumunuz süresi dolmuş. Lütfen tekrar giriş yapın.';
               if (refreshError instanceof Error) {
@@ -142,12 +142,12 @@ export const restoreSession = createAsyncThunk(
                   errorMessage = 'Bağlantı hatası. Lütfen internet bağlantınızı kontrol edin.';
                 }
               }
-              
+
               // Store the error message for potential display to user
               await SecureStore.deleteItemAsync('auth_session');
               await SecureStore.deleteItemAsync('auth_user');
               await SecureStore.deleteItemAsync('auth_session_metadata');
-              
+
               // Return error information that can be used to show user-friendly messages
               return { session: null, user: null, error: errorMessage, requiresRelogin: true };
             }
@@ -164,7 +164,7 @@ export const restoreSession = createAsyncThunk(
         const metadata = await getSessionMetadata();
         if (metadata) {
           console.log('Session metadata:', metadata);
-          
+
           // Check if session is too old (180 days)
           if (isSessionTooOld(metadata.createdAt)) {
             console.log('Session is too old (180 days), clearing stored data');
@@ -173,7 +173,7 @@ export const restoreSession = createAsyncThunk(
             await SecureStore.deleteItemAsync('auth_session_metadata');
             return { session: null, user: null, error: 'Oturumunuz çok uzun süre aktif olmadı. Lütfen tekrar giriş yapın.' };
           }
-          
+
           // Check if session is inactive (7 days)
           if (isSessionInactive(metadata.lastActivityAt)) {
             console.log('Session is inactive (7 days), clearing stored data');
@@ -207,7 +207,7 @@ export const updateUserStats = createAsyncThunk(
     try {
       const state = getState() as { auth: AuthState };
       const { user } = state.auth;
-      
+
       if (!user) {
         return rejectWithValue('No user logged in');
       }
@@ -266,7 +266,7 @@ export const signup = createAsyncThunk(
 
       const user: User = data.user;
       const session: AuthSession = data.session;
-      
+
       // Session'ı da kaydet - BU ÇOK ÖNEMLİ!
       if (session) {
         await SecureStore.setItemAsync('auth_session', JSON.stringify(session));
@@ -374,7 +374,7 @@ export const refreshSession = createAsyncThunk(
   async (refreshToken: string, { rejectWithValue }) => {
     try {
       console.log('Attempting to refresh session...');
-      
+
       if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
         return rejectWithValue('Missing Supabase configuration');
       }
