@@ -152,6 +152,7 @@ export default function GamesScreen() {
           }}
         >
           <Text style={styles.titleDark}>Oyunlar</Text>
+          <Text style={styles.subtitleDark}>Hadi başla, eğlence seni bekliyor!</Text>
         </Animated.View>
         <Animated.View
           style={[
@@ -257,6 +258,11 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: Colors.pureWhite,
     letterSpacing: 0.5,
+    textAlign: 'center',
+  },
+  subtitleDark: {
+    fontSize: 16,
+    color: 'rgba(255,255,255,0.85)',
     textAlign: 'center',
   },
   floatShape: {

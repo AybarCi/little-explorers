@@ -136,7 +136,7 @@ export default function PlayGameScreen() {
       });
       console.log('Attempting to save progress with token:', session.access_token?.substring(0, 20) + '...');
       console.log('Session expires at:', session.expires_at, 'Current time:', Math.floor(Date.now() / 1000));
-      
+
       // 1. Oyun ilerlemesini kaydet (Redux thunk kullan)
       const progressResult = await dispatch(saveGameProgress({
         userId: user.id,
@@ -144,15 +144,14 @@ export default function PlayGameScreen() {
         score,
         completed: true,
         time_spent: timeSpent,
-        accessToken: session.access_token,
       })).unwrap();
 
       console.log('SaveGameProgress response payload:', progressResult);
 
       // 2. Kullanıcı istatistiklerini güncelle - oyunun tanımlı puanını kullan
-      dispatch(updateUserStats({ 
-        points: game.points, 
-        completedGames: 1 
+      dispatch(updateUserStats({
+        points: game.points,
+        completedGames: 1
       }));
 
       // 3. Store'u güncelle - böylece tüm ekranlar güncel kalır
@@ -168,7 +167,7 @@ export default function PlayGameScreen() {
       console.error('Save progress error:', err);
       // Hata durumunda kullanıcıya bildirim göster
       let errorMessage = 'İlerleme kaydedilemedi. Lütfen tekrar deneyin.';
-      
+
       if (err instanceof Error) {
         if (err.message.includes('Invalid JWT') || err.message.includes('Unauthorized')) {
           errorMessage = 'Oturumunuz süresi dolmuş. Lütfen tekrar giriş yapın.';
@@ -180,7 +179,7 @@ export default function PlayGameScreen() {
           errorMessage = err.message;
         }
       }
-      
+
       Alert.alert('Hata', errorMessage);
     }
   };

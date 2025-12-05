@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { createClient } from '@supabase/supabase-js';
+import { fetchWithAuth } from '@/utils/api';
 import { Game, GameCategory, SaveProgressPayload } from '@/types/game';
 import { RootState } from '../index';
 import Constants from 'expo-constants';
@@ -87,8 +88,6 @@ export const fetchGames = createAsyncThunk(
       if (!response.ok) {
         return rejectWithValue(data.error || 'Failed to fetch games');
       }
-
-      console.log('Returning games:', data.games);
       return data.games as Game[];
     } catch (error) {
       return rejectWithValue(
@@ -144,14 +143,15 @@ export const fetchGameById = createAsyncThunk(
 export const saveGameProgress = createAsyncThunk(
   'games/saveProgress',
   async (
-    payload: SaveProgressPayload & { userId: string; accessToken: string },
-    { rejectWithValue }
+    payload: SaveProgressPayload & { userId: string },
+    thunkAPI
   ) => {
+    const { rejectWithValue } = thunkAPI;
     try {
       if (!SUPABASE_URL) {
         return rejectWithValue('Missing Supabase configuration');
       }
-      const { userId, accessToken, ...progressData } = payload;
+      const { userId, ...progressData } = payload;
       console.log('Supabase URL exists:', !!SUPABASE_URL);
       console.log('Supabase ANON KEY exists:', !!SUPABASE_ANON_KEY);
 
@@ -163,20 +163,19 @@ export const saveGameProgress = createAsyncThunk(
         time_spent: (progressData as any).time_spent,
       });
 
-      const response = await fetch(
+      const response = await fetchWithAuth(
         `${SUPABASE_URL}/functions/v1/games-progress`,
         {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${accessToken}`,
             apikey: `${SUPABASE_ANON_KEY}`,
           },
           body: JSON.stringify({
             user_id: userId,
             ...progressData
           }),
-        }
+        },
+        thunkAPI
       );
 
       const data = (await response.json()) as SaveProgressResponse;
@@ -317,10 +316,10 @@ const gamesSlice = createSlice({
             ...g,
             user_progress: map.has(g.id)
               ? {
-                  score: map.get(g.id)!.score,
-                  completed: map.get(g.id)!.completed,
-                  time_spent: map.get(g.id)!.time_spent,
-                }
+                score: map.get(g.id)!.score,
+                completed: map.get(g.id)!.completed,
+                time_spent: map.get(g.id)!.time_spent,
+              }
               : g.user_progress ?? null,
           })) as any;
         }

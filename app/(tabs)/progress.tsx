@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useRef } from 'react';
+import { useEffect, useCallback, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -12,28 +12,75 @@ import { useFocusEffect } from '@react-navigation/native';
 import { TrendingUp, Target, Clock, Trophy, Star } from 'lucide-react-native';
 import { useAppSelector } from '@/hooks/useAppSelector';
 import { useAppDispatch } from '@/hooks/useAppDispatch';
-import { fetchGames } from '@/store/slices/gamesSlice';
 import { restoreSession, ensureValidSession } from '@/store/slices/authSlice';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/constants/colors';
+import Constants from 'expo-constants';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
+const SUPABASE_URL = Constants.expoConfig?.extra?.supabaseUrl || process.env.EXPO_PUBLIC_SUPABASE_URL;
+const SUPABASE_ANON_KEY = Constants.expoConfig?.extra?.supabaseAnonKey || process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+
+interface UserProgressStats {
+  totalScore: number;
+  completedGames: number;
+  totalTime: number;
+  averageScore: number;
+  totalGamesInApp: number;
+}
+
+interface CategoryData {
+  total: number;
+  completed: number;
+  score: number;
+  time: number;
+}
 
 export default function ProgressScreen() {
   const dispatch = useAppDispatch();
   const { user, initialized } = useAppSelector((state) => state.auth);
-  const { games, loading, error } = useAppSelector((state) => state.games);
   const headerAnim = useRef(new Animated.Value(0)).current;
   const float1 = useRef(new Animated.Value(0)).current;
   const float2 = useRef(new Animated.Value(0)).current;
 
-  useEffect(() => {
-    console.log('Progress Screen - User:', user);
-    console.log('Progress Screen - User ID:', user?.id);
-    if (user?.id) {
-      console.log('Fetching games for user:', user.id);
-      dispatch(fetchGames({ userId: user.id }));
-      dispatch(ensureValidSession());
+  const [stats, setStats] = useState<UserProgressStats>({
+    totalScore: 0,
+    completedGames: 0,
+    totalTime: 0,
+    averageScore: 0,
+    totalGamesInApp: 0,
+  });
+  const [categories, setCategories] = useState<Record<string, CategoryData>>({});
+  const [loading, setLoading] = useState(true);
+
+  const fetchUserProgress = useCallback(async () => {
+    if (!user?.id) return;
+
+    try {
+      setLoading(true);
+      const response = await fetch(
+        `${SUPABASE_URL}/functions/v1/user-progress?user_id=${user.id}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          },
+        }
+      );
+
+      const data = await response.json() as {
+        stats?: UserProgressStats;
+        categories?: Record<string, CategoryData>;
+      };
+      console.log('User Progress API Response:', data);
+
+      if (response.ok && data.stats) {
+        setStats(data.stats);
+        setCategories(data.categories || {});
+      }
+    } catch (error) {
+      console.error('Error fetching user progress:', error);
+    } finally {
+      setLoading(false);
     }
   }, [user?.id]);
 
@@ -45,93 +92,69 @@ export default function ProgressScreen() {
 
   useEffect(() => {
     if (initialized && user?.id) {
-      console.log('Auth initialized, refetching games for user:', user.id);
-      dispatch(fetchGames({ userId: user.id }));
-      
+      dispatch(ensureValidSession());
+      fetchUserProgress();
     }
   }, [initialized, user?.id]);
 
   useFocusEffect(
     useCallback(() => {
-      console.log('Focus effect triggered');
+      console.log('Progress Focus effect triggered');
       if (user?.id) {
-        console.log('Refetching games for user:', user.id);
-        dispatch(fetchGames({ userId: user.id }));
+        fetchUserProgress();
       }
-    }, [user?.id, dispatch])
+
+      // Start animations when page is focused
+      Animated.timing(headerAnim, {
+        toValue: 1,
+        duration: 700,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }).start();
+
+      const float1Animation = Animated.loop(
+        Animated.sequence([
+          Animated.timing(float1, {
+            toValue: 1,
+            duration: 2600,
+            easing: Easing.inOut(Easing.sin),
+            useNativeDriver: true,
+          }),
+          Animated.timing(float1, {
+            toValue: 0,
+            duration: 2600,
+            easing: Easing.inOut(Easing.sin),
+            useNativeDriver: true,
+          }),
+        ])
+      );
+      float1Animation.start();
+
+      const float2Animation = Animated.loop(
+        Animated.sequence([
+          Animated.timing(float2, {
+            toValue: 1,
+            duration: 2200,
+            easing: Easing.inOut(Easing.sin),
+            useNativeDriver: true,
+          }),
+          Animated.timing(float2, {
+            toValue: 0,
+            duration: 2200,
+            easing: Easing.inOut(Easing.sin),
+            useNativeDriver: true,
+          }),
+        ])
+      );
+      float2Animation.start();
+
+      // Cleanup: stop animations when leaving the screen
+      return () => {
+        float1Animation.stop();
+        float2Animation.stop();
+      };
+    }, [user?.id, headerAnim, float1, float2, fetchUserProgress])
   );
-
-  useEffect(() => {
-    Animated.timing(headerAnim, {
-      toValue: 1,
-      duration: 700,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
-    }).start();
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(float1, {
-          toValue: 1,
-          duration: 2400,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
-        Animated.timing(float1, {
-          toValue: 0,
-          duration: 2400,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(float2, {
-          toValue: 1,
-          duration: 2200,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
-        Animated.timing(float2, {
-          toValue: 0,
-          duration: 2200,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
-  }, []);
-
-  // Kullanıcının toplam puanını auth state'den al
-  const completedGamesFromGames = games.filter((g) => g.user_progress?.completed).length;
-  const totalGames = games.length;
-  const totalTime = games.reduce((sum, g) => sum + (g.user_progress?.time_spent || 0), 0);
-  
-  // Auth state'den gelen değerleri kullan - game_progress yoksa bu değerler gösterilsin
-  const authCompletedGames = user?.completed_games_count || 0;
-  const authTotalScore = user?.total_points || 0;
-  const completionRate = totalGames > 0 ? Math.round((authCompletedGames / totalGames) * 100) : 0;
-
-  // Debug için console.log
-  console.log('User:', user);
-  console.log('Auth Completed Games:', authCompletedGames);
-  console.log('Auth Total Score:', authTotalScore);
-  console.log('Games with user_progress:', games.filter(g => g.user_progress !== null).length);
-  console.log('Total Time from games:', totalTime);
-  console.log('Total Games:', totalGames);
-
-  const categoryStats = games.reduce((acc, game) => {
-    const category = game.category;
-    if (!acc[category]) {
-      acc[category] = { total: 0, completed: 0, score: 0 };
-    }
-    acc[category].total += 1;
-    if (game.user_progress?.completed) {
-      acc[category].completed += 1;
-      acc[category].score += game.user_progress?.score || 0; // Sadece tamamlanan oyunlarda skor ekle
-    }
-    return acc;
-  }, {} as Record<string, { total: number; completed: number; score: number }>);
 
   const categoryLabels: Record<string, string> = {
     math: 'Matematik',
@@ -141,40 +164,17 @@ export default function ProgressScreen() {
     science: 'Bilim',
   };
 
-  // Oyunlardaki skorların ortalamasını hesapla (auth state değil, gerçek oyun skorları)
-  const completedGamesWithScores = games.filter((g) => g.user_progress?.completed && g.user_progress?.score !== undefined);
-  const totalGameScores = completedGamesWithScores.reduce((sum, g) => sum + (g.user_progress?.score || 0), 0);
-  const averageScore = completedGamesWithScores.length > 0 ? Math.round(totalGameScores / completedGamesWithScores.length) : 0;
-  
-  // Debug için yeni bilgiler
-  console.log('=== HESAPLAMA DETAYLARI ===');
-  console.log('Tamamlanan oyunlar (skorlu):', completedGamesWithScores.length);
-  console.log('Toplam oyun skorları:', totalGameScores);
-  console.log('Ortalama skor:', averageScore);
-  console.log('Kategori istatistikleri:', categoryStats);
-  
-  // Auth state'den gelen değerleri kullan
-  const displayCompletedGames = authCompletedGames;
-  const displayTotalScore = authTotalScore;
-  const hoursPlayed = Math.floor(totalTime / 3600);
-  const minutesPlayed = Math.floor((totalTime % 3600) / 60);
+  const formatTime = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    if (hours > 0) {
+      return `${hours}s ${minutes}dk`;
+    }
+    return `${minutes}dk`;
+  };
 
-  if (loading) {
-    return (
-      <View style={[styles.container, styles.centerContent]}>
-        <Text style={styles.loadingText}>Yükleniyor...</Text>
-      </View>
-    );
-  }
-
-  if (error) {
-    return (
-      <View style={[styles.container, styles.centerContent]}>
-        <Text style={styles.errorText}>Hata: {error}</Text>
-        <Text style={styles.errorSubtext}>Lütfen tekrar deneyin</Text>
-      </View>
-    );
-  }
+  const totalGames = stats.totalGamesInApp;
+  const completionRate = totalGames > 0 ? Math.round((stats.completedGames / totalGames) * 100) : 0;
 
   return (
     <ScrollView style={styles.container}>
@@ -184,15 +184,10 @@ export default function ProgressScreen() {
         end={{ x: 1, y: 1 }}
         style={styles.headerGradient}
       >
-        <Animated.View
-          style={{
-            transform: [{ translateY: headerAnim.interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) }],
-            opacity: headerAnim,
-            alignItems: 'center',
-          }}
-        >
+        <View style={{ alignItems: 'center' }}>
           <Text style={styles.titleDark}>İlerleme</Text>
-        </Animated.View>
+          <Text style={styles.subtitleDark}>Neler başardın, bir gözat!</Text>
+        </View>
         <Animated.View
           style={[
             styles.floatShape,
@@ -222,7 +217,7 @@ export default function ProgressScreen() {
           <View style={[styles.statIcon, { backgroundColor: '#48BB78' }]}>
             <Trophy size={24} color="white" />
           </View>
-          <Text style={styles.statValue}>{displayTotalScore}</Text>
+          <Text style={styles.statValue}>{stats.totalScore}</Text>
           <Text style={styles.statLabel}>Toplam Puan</Text>
         </View>
 
@@ -230,7 +225,7 @@ export default function ProgressScreen() {
           <View style={[styles.statIcon, { backgroundColor: '#4299E1' }]}>
             <Target size={24} color="white" />
           </View>
-          <Text style={styles.statValue}>{displayCompletedGames}</Text>
+          <Text style={styles.statValue}>{stats.completedGames}</Text>
           <Text style={styles.statLabel}>Tamamlanan</Text>
         </View>
 
@@ -238,7 +233,7 @@ export default function ProgressScreen() {
           <View style={[styles.statIcon, { backgroundColor: '#F6AD55' }]}>
             <Star size={24} color="white" />
           </View>
-          <Text style={styles.statValue}>{averageScore}</Text>
+          <Text style={styles.statValue}>{stats.averageScore}</Text>
           <Text style={styles.statLabel}>Ort. Skor</Text>
         </View>
 
@@ -246,7 +241,7 @@ export default function ProgressScreen() {
           <View style={[styles.statIcon, { backgroundColor: '#ED8936' }]}>
             <Clock size={24} color="white" />
           </View>
-          <Text style={styles.statValue}>{hoursPlayed}s {minutesPlayed}d</Text>
+          <Text style={styles.statValue}>{formatTime(stats.totalTime)}</Text>
           <Text style={styles.statLabel}>Süre</Text>
         </View>
       </View>
@@ -260,7 +255,7 @@ export default function ProgressScreen() {
         <View style={styles.progressCard}>
           <View style={styles.progressRow}>
             <Text style={styles.progressLabel}>Tamamlanan Oyunlar</Text>
-            <Text style={styles.progressValue}>{displayCompletedGames} / {totalGames}</Text>
+            <Text style={styles.progressValue}>{stats.completedGames} / {totalGames}</Text>
           </View>
           <View style={styles.progressBarContainer}>
             <View style={[styles.progressBar, { width: `${completionRate}%` }]} />
@@ -271,21 +266,21 @@ export default function ProgressScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Kategori Performansı</Text>
 
-        {Object.entries(categoryStats).map(([category, stats]) => {
-          const categoryCompletion = stats.total > 0
-            ? Math.round((stats.completed / stats.total) * 100)
+        {Object.entries(categories).map(([category, catData]) => {
+          const categoryCompletion = catData.total > 0
+            ? Math.round((catData.completed / catData.total) * 100)
             : 0;
 
           return (
             <View key={category} style={styles.categoryCard}>
               <View style={styles.categoryHeader}>
                 <Text style={styles.categoryName}>{categoryLabels[category] || category}</Text>
-                <Text style={styles.categoryScore}>{stats.score} skor</Text>
+                <Text style={styles.categoryScore}>{catData.score} skor</Text>
               </View>
 
               <View style={styles.categoryStats}>
                 <Text style={styles.categoryText}>
-                  {stats.completed} / {stats.total} tamamlandı
+                  {catData.completed} / {catData.total} tamamlandı
                 </Text>
                 <Text style={[styles.categoryPercentage, { color: categoryCompletion === 100 ? '#48BB78' : '#4299E1' }]}>
                   %{categoryCompletion}
@@ -304,15 +299,15 @@ export default function ProgressScreen() {
           );
         })}
 
-        {Object.keys(categoryStats).length === 0 && displayCompletedGames > 0 && (
+        {Object.keys(categories).length === 0 && stats.completedGames > 0 && (
           <View style={styles.emptyState}>
             <Text style={styles.emptyEmoji}>📊</Text>
-            <Text style={styles.emptyText}>Toplam {displayCompletedGames} oyun tamamlandı</Text>
+            <Text style={styles.emptyText}>Toplam {stats.completedGames} oyun tamamlandı</Text>
             <Text style={styles.emptySubtext}>Kategori bazlı istatistikler için oyun oynamaya devam edin!</Text>
           </View>
         )}
 
-        {Object.keys(categoryStats).length === 0 && displayCompletedGames === 0 && (
+        {Object.keys(categories).length === 0 && stats.completedGames === 0 && (
           <View style={styles.emptyState}>
             <Text style={styles.emptyEmoji}>📊</Text>
             <Text style={styles.emptyText}>Henüz oyun oynamadınız</Text>
@@ -332,33 +327,64 @@ const styles = StyleSheet.create({
   headerGradient: {
     paddingHorizontal: 24,
     paddingTop: 60,
-    paddingBottom: 24,
+    paddingBottom: 32,
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
-    alignItems: 'center',
     overflow: 'hidden',
   },
-  titleDark: {
+  greetingDark: {
+    fontSize: 16,
+    color: Colors.pureWhite,
+  },
+  userNameDark: {
     fontSize: 28,
     fontWeight: '800',
     color: Colors.pureWhite,
     letterSpacing: 0.5,
+  },
+  avatarContainerDark: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: Colors.secondary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 3,
+    borderColor: 'rgba(255,255,255,0.4)',
+  },
+  avatarTextDark: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: Colors.pureWhite,
+  },
+  titleDark: {
+    fontSize: 32,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    letterSpacing: 1,
     textAlign: 'center',
-    marginBottom: 4,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
+  },
+  subtitleDark: {
+    fontSize: 16,
+    color: 'rgba(255,255,255,0.85)',
+    textAlign: 'center',
   },
   floatShape: {
     position: 'absolute',
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    opacity: 0.85,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    opacity: 1,
   },
   floatShapeSmall: {
     position: 'absolute',
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    opacity: 0.9,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    opacity: 1,
   },
   statsGrid: {
     flexDirection: 'row',

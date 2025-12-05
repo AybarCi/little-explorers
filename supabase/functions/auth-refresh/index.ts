@@ -1,5 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -34,7 +34,7 @@ Deno.serve(async (req: Request) => {
     );
 
     console.log('Attempting to refresh session with refresh_token:', refresh_token.substring(0, 10) + '...');
-    
+
     // Use refresh token to get new session
     const { data, error } = await supabase.auth.refreshSession({
       refresh_token,

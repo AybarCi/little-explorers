@@ -72,6 +72,20 @@ Deno.serve(async (req: Request) => {
       console.error('Error fetching user data:', userDataError);
     }
 
+    // Get game's base points value
+    const { data: gameData, error: gameDataError } = await supabase
+      .from("games")
+      .select("points")
+      .eq("id", game_id)
+      .single();
+
+    if (gameDataError) {
+      console.error('Error fetching game data:', gameDataError);
+    }
+
+    const gameBasePoints = gameData?.points || 0;
+    console.log('Game base points:', gameBasePoints);
+
     let result;
     let pointsToAdd = 0;
     let completedGamesToAdd = 0;
@@ -81,20 +95,16 @@ Deno.serve(async (req: Request) => {
         updated_at: new Date().toISOString(),
       };
 
-      // Only update if new score is higher
-      if (score !== undefined && score > (existingProgress.score || 0)) {
-        const previousScore = existingProgress.score || 0;
+      // Always update score if provided
+      if (score !== undefined) {
         updateData.score = score;
-        pointsToAdd = score - previousScore;
       }
 
-      // First completion
+      // First completion - add game's base points to user's total
       if (completed && !existingProgress.completed) {
         updateData.completed = true;
         completedGamesToAdd = 1;
-        if (pointsToAdd === 0) {
-          pointsToAdd = score || 0;
-        }
+        pointsToAdd = gameBasePoints; // Use game's points value, not player score
       }
 
       if (time_spent !== undefined) {
@@ -144,8 +154,9 @@ Deno.serve(async (req: Request) => {
       }
       result = data;
       console.log('Progress insert result:', { id: result.id, score: result.score, completed: result.completed, time_spent: result.time_spent });
-      
-      pointsToAdd = score || 0;
+
+      // Use game's base points for user's total_points, not the player score
+      pointsToAdd = completed ? gameBasePoints : 0;
       completedGamesToAdd = completed ? 1 : 0;
     }
 
@@ -182,7 +193,7 @@ Deno.serve(async (req: Request) => {
   } catch (error) {
     console.error('Game progress error:', error);
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         error: error instanceof Error ? error.message : "Unknown error",
         details: error instanceof Error ? error.message : "Unknown error occurred while saving progress"
       }),

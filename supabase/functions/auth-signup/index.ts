@@ -48,15 +48,18 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    if (!authData.user || !authData.session) {
+    if (!authData.user) {
       return new Response(
-        JSON.stringify({ error: "Failed to create user session" }),
+        JSON.stringify({ error: "Failed to create user" }),
         {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );
     }
+
+    // If email confirmation is required, session might be null
+    // We still create the user profile
 
     const { data: userData, error: userError } = await supabase
       .from("users")
