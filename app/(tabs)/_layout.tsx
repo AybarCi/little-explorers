@@ -1,4 +1,5 @@
 import { Tabs } from 'expo-router';
+import { View } from 'react-native';
 import { Home, BookOpen, User } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/constants/colors';
@@ -9,16 +10,21 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: Colors.pureWhite,
-        tabBarInactiveTintColor: 'rgba(255,255,255,0.75)',
+        tabBarInactiveTintColor: 'rgba(255,255,255,0.6)',
         tabBarStyle: {
-          borderTopColor: '#E2E8F0',
+          borderTopColor: 'rgba(255,255,255,0.1)',
           backgroundColor: 'transparent',
-          height: 92,
-          paddingBottom: 14,
-          paddingTop: 12,
+          height: 90,
+          paddingBottom: 10,
+          paddingTop: 10,
           borderTopLeftRadius: 24,
           borderTopRightRadius: 24,
           overflow: 'hidden',
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          elevation: 0,
         },
         tabBarBackground: () => (
           <LinearGradient
@@ -29,19 +35,14 @@ export default function TabLayout() {
           />
         ),
         tabBarItemStyle: {
-          paddingVertical: 12,
-          paddingHorizontal: 16,
-          marginHorizontal: 8,
-          borderRadius: 22,
-          minHeight: 56,
+          paddingVertical: 8,
+          justifyContent: 'center',
           alignItems: 'center',
         },
-        tabBarActiveBackgroundColor: 'rgba(255,255,255,0.22)',
         tabBarLabelStyle: {
           fontSize: 12,
-          fontWeight: '700',
+          fontWeight: '600',
           marginTop: 4,
-          lineHeight: 14,
         },
         tabBarIconStyle: {
           marginBottom: 0,
@@ -53,9 +54,17 @@ export default function TabLayout() {
         options={{
           title: 'Ana Sayfa',
           tabBarIcon: ({ color, focused }) => (
-            <>
-              <Home size={26} color={color} />
-            </>
+            <View style={{
+              backgroundColor: focused ? 'rgba(255,255,255,0.2)' : 'transparent',
+              padding: 8,
+              borderRadius: 16,
+              width: 48,
+              height: 48,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              <Home size={24} color={color} strokeWidth={focused ? 3 : 2} />
+            </View>
           ),
         }}
       />
@@ -64,9 +73,17 @@ export default function TabLayout() {
         options={{
           title: 'Oyunlar',
           tabBarIcon: ({ color, focused }) => (
-            <>
-              <BookOpen size={26} color={color} />
-            </>
+            <View style={{
+              backgroundColor: focused ? 'rgba(255,255,255,0.2)' : 'transparent',
+              padding: 8,
+              borderRadius: 16,
+              width: 48,
+              height: 48,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              <BookOpen size={24} color={color} strokeWidth={focused ? 3 : 2} />
+            </View>
           ),
         }}
       />
@@ -75,9 +92,17 @@ export default function TabLayout() {
         options={{
           title: 'Profil',
           tabBarIcon: ({ color, focused }) => (
-            <>
-              <User size={26} color={color} />
-            </>
+            <View style={{
+              backgroundColor: focused ? 'rgba(255,255,255,0.2)' : 'transparent',
+              padding: 8,
+              borderRadius: 16,
+              width: 48,
+              height: 48,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              <User size={24} color={color} strokeWidth={focused ? 3 : 2} />
+            </View>
           ),
         }}
       />

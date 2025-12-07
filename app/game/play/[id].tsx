@@ -26,6 +26,7 @@ import ScienceQuizGame from '@/components/games/ScienceQuizGame';
 import HangmanGame from '@/components/games/HangmanGame';
 import ColorTubeGame from '@/components/games/ColorTubeGame';
 import PictureWordGame from '@/components/games/PictureWordGame';
+import MinesweeperGame from '@/components/games/MinesweeperGame';
 
 import Constants from 'expo-constants';
 const SUPABASE_URL =
@@ -102,6 +103,13 @@ export default function PlayGameScreen() {
     if (!session?.expires_at) return true;
     const now = Math.floor(Date.now() / 1000);
     return session.expires_at <= now;
+  };
+
+  const getAgeGroup = (minAge: number): string => {
+    if (minAge <= 7) return '5-7';
+    if (minAge <= 10) return '8-10';
+    if (minAge <= 13) return '11-13';
+    return '14+';
   };
 
   const handleGameComplete = async (score: number) => {
@@ -298,10 +306,19 @@ export default function PlayGameScreen() {
           />
         );
 
+      case 'minesweeper':
+        return (
+          <MinesweeperGame
+            onComplete={handleGameComplete}
+            ageGroup={getAgeGroup(game.min_age)}
+          />
+        );
       default:
         return (
           <View style={styles.centerContainer}>
-            <Text style={styles.errorText}>Bu oyun türü henüz desteklenmiyor</Text>
+            <Text style={styles.errorText}>
+              Bu oyun türü henüz desteklenmiyor: {game.game_data.type}
+            </Text>
           </View>
         );
     }
