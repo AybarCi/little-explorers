@@ -27,6 +27,7 @@ import HangmanGame from '@/components/games/HangmanGame';
 import ColorTubeGame from '@/components/games/ColorTubeGame';
 import PictureWordGame from '@/components/games/PictureWordGame';
 import MinesweeperGame from '@/components/games/MinesweeperGame';
+import TicTacToeGame from '@/components/games/TicTacToeGame';
 
 import Constants from 'expo-constants';
 const SUPABASE_URL =
@@ -313,6 +314,15 @@ export default function PlayGameScreen() {
             ageGroup={getAgeGroup(game.min_age)}
           />
         );
+
+      case 'tictactoe':
+        return (
+          <TicTacToeGame
+            onComplete={handleGameComplete}
+            ageGroup={getAgeGroup(game.min_age)}
+          />
+        );
+
       default:
         return (
           <View style={styles.centerContainer}>
