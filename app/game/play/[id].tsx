@@ -30,6 +30,7 @@ import MinesweeperGame from '@/components/games/MinesweeperGame';
 import TicTacToeGame from '@/components/games/TicTacToeGame';
 import BubbleShooterGame from '@/components/games/BubbleShooterGame';
 import MahjongSolitaireGame from '@/components/games/MahjongSolitaireGame';
+import JigsawPuzzleGame from '@/components/games/JigsawPuzzleGame';
 
 import Constants from 'expo-constants';
 const SUPABASE_URL =
@@ -337,6 +338,15 @@ export default function PlayGameScreen() {
       case 'mahjong-solitaire':
         return (
           <MahjongSolitaireGame
+            onComplete={handleGameComplete}
+            ageGroup={getAgeGroup(game.min_age)}
+          />
+        );
+
+      case 'jigsaw':
+      case 'jigsaw-puzzle':
+        return (
+          <JigsawPuzzleGame
             onComplete={handleGameComplete}
             ageGroup={getAgeGroup(game.min_age)}
           />
