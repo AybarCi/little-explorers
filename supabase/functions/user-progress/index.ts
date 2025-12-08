@@ -110,7 +110,7 @@ Deno.serve(async (req: Request) => {
 
         progressData?.forEach((progress: any) => {
             const category = progress.games?.category;
-            const points = progress.games?.points || 0;
+            const points = progress.score || 0;
 
             // Increment global stats
             calculatedCompletedGames++;

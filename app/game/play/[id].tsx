@@ -28,6 +28,7 @@ import ColorTubeGame from '@/components/games/ColorTubeGame';
 import PictureWordGame from '@/components/games/PictureWordGame';
 import MinesweeperGame from '@/components/games/MinesweeperGame';
 import TicTacToeGame from '@/components/games/TicTacToeGame';
+import BubbleShooterGame from '@/components/games/BubbleShooterGame';
 
 import Constants from 'expo-constants';
 const SUPABASE_URL =
@@ -318,6 +319,14 @@ export default function PlayGameScreen() {
       case 'tictactoe':
         return (
           <TicTacToeGame
+            onComplete={handleGameComplete}
+            ageGroup={getAgeGroup(game.min_age)}
+          />
+        );
+
+      case 'bubbleshooter':
+        return (
+          <BubbleShooterGame
             onComplete={handleGameComplete}
             ageGroup={getAgeGroup(game.min_age)}
           />

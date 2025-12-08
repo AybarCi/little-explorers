@@ -1,5 +1,6 @@
 import { Colors } from '../constants/colors';
 import { useState, useEffect } from 'react';
+import { FaFileContract, FaRocket, FaStar } from 'react-icons/fa';
 
 export default function Terms() {
   const [visibleSections, setVisibleSections] = useState<Set<string>>(new Set());
@@ -32,28 +33,111 @@ export default function Terms() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
   return (
-    <div style={styles.page}>
-      <section id="hero" style={{
-        ...styles.hero,
-        transform: `translateY(${scrollY * 0.3}px)`,
-        opacity: visibleSections.has('hero') ? 1 : 0,
-        transition: 'opacity 0.8s ease-out, transform 0.8s ease-out'
-      }}>
-        <div style={styles.container}>
-          <h1 style={{
-            ...styles.title,
-            transform: visibleSections.has('hero') ? 'translateY(0)' : 'translateY(30px)',
-            opacity: visibleSections.has('hero') ? 1 : 0,
-            transition: 'transform 0.8s ease-out 0.2s, opacity 0.8s ease-out 0.2s'
-          }}>Kullanım Şartları</h1>
-          <p style={{
-            ...styles.subtitle,
-            transform: visibleSections.has('hero') ? 'translateY(0)' : 'translateY(30px)',
-            opacity: visibleSections.has('hero') ? 1 : 0,
-            transition: 'transform 0.8s ease-out 0.4s, opacity 0.8s ease-out 0.4s'
-          }}>Son güncelleme: 2 Aralık 2024</p>
-        </div>
-      </section>
+    <>
+      <style>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-20px) rotate(5deg); }
+        }
+        @keyframes bounce {
+          0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+          40% { transform: translateY(-10px); }
+          60% { transform: translateY(-5px); }
+        }
+        @keyframes twinkle {
+          0%, 100% { opacity: 0.3; transform: scale(1); }
+          50% { opacity: 1; transform: scale(1.2); }
+        }
+        @keyframes gradientShift {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+      `}</style>
+      <div style={styles.page}>
+        {/* Animated Hero Section */}
+        <section id="hero" style={{
+          ...styles.hero,
+          transform: `translateY(${scrollY * 0.3}px)`,
+          opacity: visibleSections.has('hero') ? 1 : 0,
+          transition: 'opacity 0.8s ease-out, transform 0.8s ease-out',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          {/* Floating Background Elements */}
+          <div style={{
+            position: 'absolute',
+            top: '20%',
+            left: '10%',
+            fontSize: '3rem',
+            color: 'rgba(255,255,255,0.2)',
+            animation: 'float 6s ease-in-out infinite',
+            animationDelay: '0s'
+          }}><FaFileContract /></div>
+          <div style={{
+            position: 'absolute',
+            top: '60%',
+            right: '15%',
+            fontSize: '2.5rem',
+            color: 'rgba(255,255,255,0.15)',
+            animation: 'float 8s ease-in-out infinite',
+            animationDelay: '2s'
+          }}><FaRocket /></div>
+          <div style={{
+            position: 'absolute',
+            top: '30%',
+            right: '25%',
+            fontSize: '2rem',
+            color: 'rgba(255,255,255,0.1)',
+            animation: 'float 7s ease-in-out infinite',
+            animationDelay: '4s'
+          }}><FaStar /></div>
+          <div style={{
+            position: 'absolute',
+            bottom: '20%',
+            left: '20%',
+            fontSize: '2.2rem',
+            color: 'rgba(255,255,255,0.12)',
+            animation: 'float 9s ease-in-out infinite',
+            animationDelay: '1s'
+          }}><FaStar /></div>
+
+          <div style={styles.container}>
+            <div style={{
+              ...styles.heroIcon,
+              transform: visibleSections.has('hero') ? 'scale(1) rotate(0deg)' : 'scale(0) rotate(-180deg)',
+              opacity: visibleSections.has('hero') ? 1 : 0,
+              transition: 'transform 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) 0.1s, opacity 0.8s ease-out 0.1s'
+            }}>
+              <FaFileContract />
+            </div>
+            <h1 style={{
+              ...styles.title,
+              transform: visibleSections.has('hero') ? 'translateY(0)' : 'translateY(30px)',
+              opacity: visibleSections.has('hero') ? 1 : 0,
+              transition: 'transform 0.8s ease-out 0.2s, opacity 0.8s ease-out 0.2s',
+              color: Colors.brightYellow,
+              textShadow: '2px 2px 8px rgba(0,0,0,0.5)'
+            }}>📋 Kullanım Şartları</h1>
+            <p style={{
+              ...styles.subtitle,
+              transform: visibleSections.has('hero') ? 'translateY(0)' : 'translateY(30px)',
+              opacity: visibleSections.has('hero') ? 1 : 0,
+              transition: 'transform 0.8s ease-out 0.4s, opacity 0.8s ease-out 0.4s',
+              color: Colors.pureWhite,
+              fontSize: '1.3rem',
+              fontWeight: '500'
+            }}>🚀 Uzay yolculuğumuza hoş geldiniz!</p>
+            <p style={{
+              transform: visibleSections.has('hero') ? 'translateY(0)' : 'translateY(30px)',
+              opacity: visibleSections.has('hero') ? 1 : 0,
+              transition: 'transform 0.8s ease-out 0.6s, opacity 0.8s ease-out 0.6s',
+              color: 'rgba(255,255,255,0.9)',
+              fontSize: '1rem',
+              marginTop: '1rem'
+            }}>Son güncelleme: 2 Aralık 2024</p>
+          </div>
+        </section>
 
       <section id="content" style={styles.content}>
         <div style={styles.container}>
@@ -63,28 +147,69 @@ export default function Terms() {
             opacity: visibleSections.has('content') ? 1 : 0,
             transition: 'transform 0.8s ease-out 0.2s, opacity 0.8s ease-out 0.2s'
           }}>
-            <section style={{
-              ...styles.section,
-              transform: visibleSections.has('content') ? 'translateY(0)' : 'translateY(30px)',
+            {/* Colorful Introduction Section */}
+            <div style={{
+              ...styles.introCard,
+              transform: visibleSections.has('content') ? 'translateY(0)' : 'translateY(40px)',
               opacity: visibleSections.has('content') ? 1 : 0,
-              transition: 'transform 0.6s ease-out 0.4s, opacity 0.6s ease-out 0.4s'
+              transition: 'transform 0.8s ease-out 0.3s, opacity 0.8s ease-out 0.3s',
+              background: `linear-gradient(135deg, ${Colors.energyOrange} 0%, ${Colors.spacePurple} 50%, ${Colors.deepBlue} 100%)`,
+              position: 'relative',
+              overflow: 'hidden'
             }}>
-              <h2 style={{
-                ...styles.sectionTitle,
-                transform: visibleSections.has('content') ? 'translateY(0)' : 'translateY(20px)',
-                opacity: visibleSections.has('content') ? 1 : 0,
-                transition: 'transform 0.6s ease-out 0.5s, opacity 0.6s ease-out 0.5s'
-              }}>1. Şartların Kabulü</h2>
+              {/* Floating Icons */}
+              <div style={{
+                position: 'absolute',
+                top: '10px',
+                right: '20px',
+                fontSize: '2rem',
+                color: 'rgba(255,255,255,0.3)',
+                animation: 'float 6s ease-in-out infinite'
+              }}><FaRocket /></div>
+              <div style={{
+                position: 'absolute',
+                bottom: '15px',
+                left: '20px',
+                fontSize: '1.8rem',
+                color: 'rgba(255,255,255,0.2)',
+                animation: 'float 8s ease-in-out infinite',
+                animationDelay: '2s'
+              }}><FaStar /></div>
+              
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                marginBottom: '1.5rem'
+              }}>
+                <div style={{
+                  fontSize: '3rem',
+                  color: Colors.brightYellow,
+                  marginRight: '1rem',
+                  animation: 'bounce 2s infinite'
+                }}>📋</div>
+                <h2 style={{
+                  ...styles.sectionTitle,
+                  color: Colors.brightYellow,
+                  margin: 0,
+                  textShadow: '1px 1px 3px rgba(0,0,0,0.3)'
+                }}>
+                <span style={{marginRight: '1rem', fontSize: '2.5rem'}}>✅</span>
+                1. Şartların Kabulü
+              </h2>
+              </div>
               <p style={{
                 ...styles.text,
-                transform: visibleSections.has('content') ? 'translateY(0)' : 'translateY(20px)',
-                opacity: visibleSections.has('content') ? 1 : 0,
-                transition: 'transform 0.6s ease-out 0.6s, opacity 0.6s ease-out 0.6s'
+                color: Colors.pureWhite,
+                fontSize: '1.1rem',
+                lineHeight: '1.7',
+                textShadow: '1px 1px 2px rgba(0,0,0,0.2)'
               }}>
-                Küçük Kaşif uygulamasını kullanarak, bu kullanım şartlarını kabul etmiş olursunuz.
+                <strong style={{color: Colors.brightYellow}}>Küçük Kaşif uygulamasını kullanarak</strong>, bu kullanım şartlarını kabul etmiş olursunuz.
                 Bu şartları kabul etmiyorsanız, lütfen uygulamayı kullanmayınız.
+                <br /><br />
+                <span style={{fontSize: '1rem', opacity: 0.9}}>🌟 Güvenli ve eğlenceli bir uzay yolculuğu için lütfen kurallarımıza uyun!</span>
               </p>
-            </section>
+            </div>
 
             <section id="section2" style={{
               ...styles.section,
@@ -97,13 +222,19 @@ export default function Terms() {
                 transform: visibleSections.has('section2') ? 'translateY(0)' : 'translateY(20px)',
                 opacity: visibleSections.has('section2') ? 1 : 0,
                 transition: 'transform 0.6s ease-out 0.3s, opacity 0.6s ease-out 0.3s'
-              }}>2. Kullanım Koşulları</h2>
+              }}>
+                <span style={{marginRight: '1rem', fontSize: '2.5rem'}}>📋</span>
+                2. Kullanım Koşulları
+              </h2>
               <h3 style={{
                 ...styles.subsectionTitle,
                 transform: visibleSections.has('section2') ? 'translateY(0)' : 'translateY(20px)',
                 opacity: visibleSections.has('section2') ? 1 : 0,
                 transition: 'transform 0.6s ease-out 0.4s, opacity 0.6s ease-out 0.4s'
-              }}>2.1 Yaş Sınırlaması</h3>
+              }}>
+                <span style={{marginRight: '0.5rem'}}>👶</span>
+                2.1 Yaş Sınırlaması
+              </h3>
               <p style={{
                 ...styles.text,
                 transform: visibleSections.has('section2') ? 'translateY(0)' : 'translateY(20px)',
@@ -119,17 +250,20 @@ export default function Terms() {
                 transform: visibleSections.has('section2') ? 'translateY(0)' : 'translateY(20px)',
                 opacity: visibleSections.has('section2') ? 1 : 0,
                 transition: 'transform 0.6s ease-out 0.6s, opacity 0.6s ease-out 0.6s'
-              }}>2.2 Hesap Sorumluluğu</h3>
+              }}>
+                <span style={{marginRight: '0.5rem'}}>🔐</span>
+                2.2 Hesap Sorumluluğu
+              </h3>
               <ul style={{
                 ...styles.list,
                 transform: visibleSections.has('section2') ? 'translateY(0)' : 'translateY(20px)',
                 opacity: visibleSections.has('section2') ? 1 : 0,
                 transition: 'transform 0.6s ease-out 0.7s, opacity 0.6s ease-out 0.7s'
               }}>
-                <li style={styles.listItem}>Hesap bilgilerinizi güvenli tutmaktan siz sorumlusunuz</li>
-                <li style={styles.listItem}>Hesap bilgilerinizi başkalarıyla paylaşmayınız</li>
-                <li style={styles.listItem}>Şüpheli aktivite fark ederseniz hemen bildirin</li>
-                <li style={styles.listItem}>Her hesap yalnızca bir kişi tarafından kullanılmalıdır</li>
+                <li style={styles.listItem}>🔒 Hesap bilgilerinizi güvenli tutmaktan siz sorumlusunuz</li>
+                <li style={styles.listItem}>🚫 Hesap bilgilerinizi başkalarıyla paylaşmayınız</li>
+                <li style={styles.listItem}>🚨 Şüpheli aktivite fark ederseniz hemen bildirin</li>
+                <li style={styles.listItem}>👤 Her hesap yalnızca bir kişi tarafından kullanılmalıdır</li>
               </ul>
 
               <h3 style={{
@@ -170,7 +304,10 @@ export default function Terms() {
                 transform: visibleSections.has('section3') ? 'translateY(0)' : 'translateY(20px)',
                 opacity: visibleSections.has('section3') ? 1 : 0,
                 transition: 'transform 0.6s ease-out 0.3s, opacity 0.6s ease-out 0.3s'
-              }}>3. Fikri Mülkiyet Hakları</h2>
+              }}>
+                <span style={{marginRight: '1rem', fontSize: '2.5rem'}}>©️</span>
+                3. Fikri Mülkiyet Hakları
+              </h2>
               <p style={{
                 ...styles.text,
                 transform: visibleSections.has('section3') ? 'translateY(0)' : 'translateY(20px)',
@@ -204,13 +341,19 @@ export default function Terms() {
                 transform: visibleSections.has('section4') ? 'translateY(0)' : 'translateY(20px)',
                 opacity: visibleSections.has('section4') ? 1 : 0,
                 transition: 'transform 0.6s ease-out 0.3s, opacity 0.6s ease-out 0.3s'
-              }}>4. Hizmet Sunumu</h2>
+              }}>
+                <span style={{marginRight: '1rem', fontSize: '2.5rem'}}>🛠️</span>
+                4. Hizmet Sunumu
+              </h2>
               <h3 style={{
                 ...styles.subsectionTitle,
                 transform: visibleSections.has('section4') ? 'translateY(0)' : 'translateY(20px)',
                 opacity: visibleSections.has('section4') ? 1 : 0,
                 transition: 'transform 0.6s ease-out 0.4s, opacity 0.6s ease-out 0.4s'
-              }}>4.1 Hizmet Garantisi</h3>
+              }}>
+                <span style={{marginRight: '0.5rem'}}>🛡️</span>
+                4.1 Hizmet Garantisi
+              </h3>
               <p style={{
                 ...styles.text,
                 transform: visibleSections.has('section4') ? 'translateY(0)' : 'translateY(20px)',
@@ -226,7 +369,10 @@ export default function Terms() {
                 transform: visibleSections.has('section4') ? 'translateY(0)' : 'translateY(20px)',
                 opacity: visibleSections.has('section4') ? 1 : 0,
                 transition: 'transform 0.6s ease-out 0.6s, opacity 0.6s ease-out 0.6s'
-              }}>4.2 Hizmet Değişiklikleri</h3>
+              }}>
+                <span style={{marginRight: '0.5rem'}}>🔧</span>
+                4.2 Hizmet Değişiklikleri
+              </h3>
               <p style={{
                 ...styles.text,
                 transform: visibleSections.has('section4') ? 'translateY(0)' : 'translateY(20px)',
@@ -264,7 +410,7 @@ export default function Terms() {
                   transform: visibleSections.has('section4') ? 'translateY(0)' : 'translateY(20px)',
                   opacity: visibleSections.has('section4') ? 1 : 0,
                   transition: 'transform 0.6s ease-out 1.2s, opacity 0.6s ease-out 1.2s'
-                }}>Hizmet koşullarını güncelleme</li>
+                }}>⏸️ Hesabı askıya alma veya sonlandırma</li>
               </ul>
             </section>
 
@@ -279,7 +425,10 @@ export default function Terms() {
                 transform: visibleSections.has('section5') ? 'translateY(0)' : 'translateY(20px)',
                 opacity: visibleSections.has('section5') ? 1 : 0,
                 transition: 'transform 0.6s ease-out 0.3s, opacity 0.6s ease-out 0.3s'
-              }}>5. Ücretlendirme</h2>
+              }}>
+                <span style={{marginRight: '1rem', fontSize: '2.5rem'}}>💰</span>
+                5. Ücretlendirme
+              </h2>
               <p style={{
                 ...styles.text,
                 transform: visibleSections.has('section5') ? 'translateY(0)' : 'translateY(20px)',
@@ -302,7 +451,10 @@ export default function Terms() {
                 transform: visibleSections.has('section6') ? 'translateY(0)' : 'translateY(20px)',
                 opacity: visibleSections.has('section6') ? 1 : 0,
                 transition: 'transform 0.6s ease-out 0.3s, opacity 0.6s ease-out 0.3s'
-              }}>6. Hesap Askıya Alma ve Sonlandırma</h2>
+              }}>
+                <span style={{marginRight: '1rem', fontSize: '2.5rem'}}>🚫</span>
+                6. Hesap Askıya Alma ve Sonlandırma
+              </h2>
               <p style={{
                 ...styles.text,
                 transform: visibleSections.has('section6') ? 'translateY(0)' : 'translateY(20px)',
@@ -322,25 +474,25 @@ export default function Terms() {
                   transform: visibleSections.has('section6') ? 'translateY(0)' : 'translateY(20px)',
                   opacity: visibleSections.has('section6') ? 1 : 0,
                   transition: 'transform 0.6s ease-out 0.6s, opacity 0.6s ease-out 0.6s'
-                }}>Kullanım şartlarının ihlali</li>
+                }}>📋 Kullanım şartlarının ihlali</li>
                 <li style={{
                   ...styles.listItem,
                   transform: visibleSections.has('section6') ? 'translateY(0)' : 'translateY(20px)',
                   opacity: visibleSections.has('section6') ? 1 : 0,
                   transition: 'transform 0.6s ease-out 0.7s, opacity 0.6s ease-out 0.7s'
-                }}>Yasadışı aktiviteler</li>
+                }}>⚠️ Yasadışı aktiviteler</li>
                 <li style={{
                   ...styles.listItem,
                   transform: visibleSections.has('section6') ? 'translateY(0)' : 'translateY(20px)',
                   opacity: visibleSections.has('section6') ? 1 : 0,
                   transition: 'transform 0.6s ease-out 0.8s, opacity 0.6s ease-out 0.8s'
-                }}>Diğer kullanıcılara zarar verme</li>
+                }}>💥 Diğer kullanıcılara zarar verme</li>
                 <li style={{
                   ...styles.listItem,
                   transform: visibleSections.has('section6') ? 'translateY(0)' : 'translateY(20px)',
                   opacity: visibleSections.has('section6') ? 1 : 0,
                   transition: 'transform 0.6s ease-out 0.9s, opacity 0.6s ease-out 0.9s'
-                }}>Sistemi manipüle etme girişimleri</li>
+                }}>🎮 Sistemi manipüle etme girişimleri</li>
               </ul>
               <p style={{
                 ...styles.text,
@@ -363,7 +515,10 @@ export default function Terms() {
                 transform: visibleSections.has('section7') ? 'translateY(0)' : 'translateY(20px)',
                 opacity: visibleSections.has('section7') ? 1 : 0,
                 transition: 'transform 0.6s ease-out 0.3s, opacity 0.6s ease-out 0.3s'
-              }}>7. Sorumluluk Sınırlaması</h2>
+              }}>
+                <span style={{marginRight: '1rem', fontSize: '2.5rem'}}>⚖️</span>
+                7. Sorumluluk Sınırlaması
+              </h2>
               <p style={{
                 ...styles.text,
                 transform: visibleSections.has('section7') ? 'translateY(0)' : 'translateY(20px)',
@@ -384,7 +539,7 @@ export default function Terms() {
                   opacity: visibleSections.has('section7') ? 1 : 0,
                   transition: 'transform 0.6s ease-out 0.6s, opacity 0.6s ease-out 0.6s'
                 }}>
-                  Uygulamanın kullanımından kaynaklanan dolaylı zararlardan sorumlu değiliz
+                  🛡️ Uygulamanın kullanımından kaynaklanan dolaylı zararlardan sorumlu değiliz
                 </li>
                 <li style={{
                   ...styles.listItem,
@@ -392,7 +547,7 @@ export default function Terms() {
                   opacity: visibleSections.has('section7') ? 1 : 0,
                   transition: 'transform 0.6s ease-out 0.7s, opacity 0.6s ease-out 0.7s'
                 }}>
-                  Veri kaybı veya hizmet kesintilerinden doğan zararlardan sorumlu tutulamayız
+                  💾 Veri kaybı veya hizmet kesintilerinden doğan zararlardan sorumlu tutulamayız
                 </li>
                 <li style={{
                   ...styles.listItem,
@@ -400,7 +555,7 @@ export default function Terms() {
                   opacity: visibleSections.has('section7') ? 1 : 0,
                   transition: 'transform 0.6s ease-out 0.8s, opacity 0.6s ease-out 0.8s'
                 }}>
-                  Üçüncü taraf hizmetlerinden kaynaklanan sorunlardan sorumlu değiliz
+                  🔗 Üçüncü taraf hizmetlerinden kaynaklanan sorunlardan sorumlu değiliz
                 </li>
               </ul>
             </section>
@@ -416,7 +571,10 @@ export default function Terms() {
                 transform: visibleSections.has('section8') ? 'translateY(0)' : 'translateY(20px)',
                 opacity: visibleSections.has('section8') ? 1 : 0,
                 transition: 'transform 0.6s ease-out 0.3s, opacity 0.6s ease-out 0.3s'
-              }}>8. Ebeveyn/Veli Sorumluluğu</h2>
+              }}>
+                <span style={{marginRight: '1rem', fontSize: '2.5rem'}}>👨‍👩‍👧‍👦</span>
+                8. Ebeveyn/Veli Sorumluluğu
+              </h2>
               <p style={{
                 ...styles.text,
                 transform: visibleSections.has('section8') ? 'translateY(0)' : 'translateY(20px)',
@@ -436,25 +594,25 @@ export default function Terms() {
                   transform: visibleSections.has('section8') ? 'translateY(0)' : 'translateY(20px)',
                   opacity: visibleSections.has('section8') ? 1 : 0,
                   transition: 'transform 0.6s ease-out 0.6s, opacity 0.6s ease-out 0.6s'
-                }}>Çocuklarının uygulama kullanımını denetlemekten sorumludur</li>
+                }}>👀 Çocuklarının uygulama kullanımını denetlemekten sorumludur</li>
                 <li style={{
                   ...styles.listItem,
                   transform: visibleSections.has('section8') ? 'translateY(0)' : 'translateY(20px)',
                   opacity: visibleSections.has('section8') ? 1 : 0,
                   transition: 'transform 0.6s ease-out 0.7s, opacity 0.6s ease-out 0.7s'
-                }}>Uygun yaş grubu seçimini yapmalıdır</li>
+                }}>🎯 Uygun yaş grubu seçimini yapmalıdır</li>
                 <li style={{
                   ...styles.listItem,
                   transform: visibleSections.has('section8') ? 'translateY(0)' : 'translateY(20px)',
                   opacity: visibleSections.has('section8') ? 1 : 0,
                   transition: 'transform 0.6s ease-out 0.8s, opacity 0.6s ease-out 0.8s'
-                }}>Çocuğun ekran süresini yönetmelidir</li>
+                }}>⏰ Çocuğun ekran süresini yönetmelidir</li>
                 <li style={{
                   ...styles.listItem,
                   transform: visibleSections.has('section8') ? 'translateY(0)' : 'translateY(20px)',
                   opacity: visibleSections.has('section8') ? 1 : 0,
                   transition: 'transform 0.6s ease-out 0.9s, opacity 0.6s ease-out 0.9s'
-                }}>Hesap güvenliğini sağlamalıdır</li>
+                }}>🔐 Hesap güvenliğini sağlamalıdır</li>
               </ul>
             </section>
 
@@ -469,7 +627,10 @@ export default function Terms() {
                 transform: visibleSections.has('section9') ? 'translateY(0)' : 'translateY(20px)',
                 opacity: visibleSections.has('section9') ? 1 : 0,
                 transition: 'transform 0.6s ease-out 0.3s, opacity 0.6s ease-out 0.3s'
-              }}>9. Gizlilik</h2>
+              }}>
+                <span style={{marginRight: '1rem', fontSize: '2.5rem'}}>🔒</span>
+                9. Gizlilik
+              </h2>
               <p style={{
                 ...styles.text,
                 transform: visibleSections.has('section9') ? 'translateY(0)' : 'translateY(20px)',
@@ -492,7 +653,10 @@ export default function Terms() {
                 transform: visibleSections.has('section10') ? 'translateY(0)' : 'translateY(20px)',
                 opacity: visibleSections.has('section10') ? 1 : 0,
                 transition: 'transform 0.6s ease-out 0.3s, opacity 0.6s ease-out 0.3s'
-              }}>10. Değişiklikler</h2>
+              }}>
+                <span style={{marginRight: '1rem', fontSize: '2.5rem'}}>🔄</span>
+                10. Değişiklikler
+              </h2>
               <p style={{
                 ...styles.text,
                 transform: visibleSections.has('section10') ? 'translateY(0)' : 'translateY(20px)',
@@ -516,7 +680,10 @@ export default function Terms() {
                 transform: visibleSections.has('section11') ? 'translateY(0)' : 'translateY(20px)',
                 opacity: visibleSections.has('section11') ? 1 : 0,
                 transition: 'transform 0.6s ease-out 0.3s, opacity 0.6s ease-out 0.3s'
-              }}>11. Uygulanacak Hukuk</h2>
+              }}>
+                <span style={{marginRight: '1rem', fontSize: '2.5rem'}}>📜</span>
+                11. Uygulanacak Hukuk
+              </h2>
               <p style={{
                 ...styles.text,
                 transform: visibleSections.has('section11') ? 'translateY(0)' : 'translateY(20px)',
@@ -539,7 +706,10 @@ export default function Terms() {
                 transform: visibleSections.has('section12') ? 'translateY(0)' : 'translateY(20px)',
                 opacity: visibleSections.has('section12') ? 1 : 0,
                 transition: 'transform 0.6s ease-out 0.3s, opacity 0.6s ease-out 0.3s'
-              }}>12. İletişim</h2>
+              }}>
+                <span style={{marginRight: '1rem', fontSize: '2.5rem'}}>📧</span>
+                12. İletişim
+              </h2>
               <p style={{
                 ...styles.text,
                 transform: visibleSections.has('section12') ? 'translateY(0)' : 'translateY(20px)',
@@ -580,19 +750,28 @@ export default function Terms() {
         </div>
       </section>
     </div>
+  </>
   );
 }
 
 const styles: Record<string, React.CSSProperties> = {
   page: {
     minHeight: '100vh',
-    backgroundColor: '#f8f9fa',
+    background: `linear-gradient(135deg, ${Colors.softBlue} 0%, ${Colors.lightPurple} 50%, ${Colors.softPink} 100%)`,
+    position: 'relative',
   },
   hero: {
-    background: `linear-gradient(135deg, ${Colors.spacePurple} 0%, ${Colors.darkPurple} 100%)`,
+    background: `linear-gradient(135deg, ${Colors.spacePurple} 0%, ${Colors.deepBlue} 40%, ${Colors.navyBlue} 70%, ${Colors.darkPurple} 100%)`,
     color: Colors.pureWhite,
-    padding: '4rem 2rem',
+    padding: '8rem 2rem 6rem',
     textAlign: 'center',
+    position: 'relative',
+  },
+  heroIcon: {
+    fontSize: '5rem',
+    color: Colors.brightYellow,
+    marginBottom: '2rem',
+    textShadow: '0 0 20px rgba(243, 156, 18, 0.5)',
   },
   container: {
     maxWidth: '900px',
@@ -600,55 +779,90 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '0 2rem',
   },
   title: {
-    fontSize: '3rem',
-    fontWeight: 'bold',
-    marginBottom: '0.5rem',
+    fontSize: '4rem',
+    fontWeight: '800',
+    marginBottom: '1.5rem',
+    letterSpacing: '-0.02em',
+    background: `linear-gradient(45deg, ${Colors.brightYellow}, #FFD700)`,
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    backgroundClip: 'text',
+    textShadow: '2px 2px 4px rgba(0,0,0,0.3)',
   },
   subtitle: {
-    fontSize: '1.1rem',
-    opacity: 0.9,
+    fontSize: '1.4rem',
+    opacity: 0.95,
+    fontWeight: '500',
+    color: Colors.pureWhite,
+    textShadow: '1px 1px 3px rgba(0,0,0,0.4)',
+  },
+  introCard: {
+    padding: '3rem',
+    borderRadius: '25px',
+    marginBottom: '3rem',
+    boxShadow: '0 15px 35px rgba(0,0,0,0.1)',
+    border: '3px solid rgba(255,255,255,0.2)',
+    backdropFilter: 'blur(10px)',
   },
   content: {
-    padding: '4rem 0',
+    padding: '5rem 0',
+    position: 'relative',
   },
   contentBox: {
-    backgroundColor: Colors.pureWhite,
-    padding: '3rem',
-    borderRadius: '20px',
-    boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    padding: '4rem',
+    borderRadius: '30px',
+    boxShadow: '0 20px 60px rgba(0,0,0,0.1)',
+    border: '2px solid rgba(255,255,255,0.3)',
+    backdropFilter: 'blur(20px)',
+    position: 'relative',
+    overflow: 'hidden',
   },
   section: {
-    marginBottom: '3rem',
+    marginBottom: '4rem',
+    padding: '2.5rem',
+    borderRadius: '20px',
+    backgroundColor: 'rgba(255,255,255,0.8)',
+    border: '2px solid rgba(0,0,0,0.05)',
+    boxShadow: '0 8px 25px rgba(0,0,0,0.05)',
+    transition: 'transform 0.3s ease, box-shadow 0.3s ease',
   },
   sectionTitle: {
-    fontSize: '1.75rem',
-    fontWeight: 'bold',
-    color: Colors.spacePurple,
-    marginBottom: '1rem',
+    fontSize: '2.2rem',
+    fontWeight: '800',
+    marginBottom: '2rem',
+    letterSpacing: '-0.01em',
+    background: `linear-gradient(45deg, ${Colors.spacePurple}, ${Colors.deepBlue})`,
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    backgroundClip: 'text',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '1rem',
   },
   subsectionTitle: {
-    fontSize: '1.25rem',
+    fontSize: '1.4rem',
     fontWeight: '600',
     color: Colors.darkPurple,
-    marginTop: '1.5rem',
-    marginBottom: '0.75rem',
+    marginTop: '2rem',
+    marginBottom: '1rem',
   },
   text: {
-    fontSize: '1.05rem',
-    lineHeight: '1.8',
-    color: '#333',
-    marginBottom: '1rem',
+    fontSize: '1.1rem',
+    lineHeight: '1.9',
+    color: '#2d3748',
+    marginBottom: '1.25rem',
   },
   list: {
     paddingLeft: '1.5rem',
-    marginTop: '0.5rem',
-    marginBottom: '1rem',
+    marginTop: '0.75rem',
+    marginBottom: '1.25rem',
   },
   listItem: {
-    fontSize: '1.05rem',
-    lineHeight: '1.8',
-    color: '#333',
-    marginBottom: '0.5rem',
+    fontSize: '1.1rem',
+    lineHeight: '1.9',
+    color: '#2d3748',
+    marginBottom: '0.75rem',
   },
   link: {
     color: Colors.energyOrange,

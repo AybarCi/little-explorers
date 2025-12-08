@@ -1,4 +1,4 @@
-export type GameCategory = 'math' | 'language' | 'logic' | 'memory' | 'science';
+export type GameCategory = 'math' | 'language' | 'logic' | 'memory' | 'science' | 'fun';
 export type GameDifficulty = 'easy' | 'medium' | 'hard';
 
 export interface Game {

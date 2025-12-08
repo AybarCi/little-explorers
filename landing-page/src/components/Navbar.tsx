@@ -28,7 +28,10 @@ export default function Navbar() {
     <>
       <nav style={{
         ...styles.nav,
-        ...(isScrolled ? styles.navScrolled : {})
+        ...(isScrolled ? styles.navScrolled : {}),
+        background: `linear-gradient(45deg, ${Colors.skyBlue}, ${Colors.magicPink}, ${Colors.sunshineYellow})`,
+        backgroundSize: '200% 200%',
+        animation: 'gradientShift 6s ease infinite'
       }}>
         <div style={styles.container}>
           <Link 
@@ -42,7 +45,15 @@ export default function Navbar() {
             }}
           >
             <img src={logo} alt="Küçük Kaşif Logo" style={styles.logoImage} />
-            <span style={styles.logoText}>Küçük Kaşif</span>
+            <span style={{
+              ...styles.logoText,
+              background: `linear-gradient(45deg, ${Colors.rainbowRed}, ${Colors.sunshineYellow}, ${Colors.skyBlue})`,
+              backgroundSize: '200% 200%',
+              animation: 'gradientShift 3s ease infinite',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              fontWeight: '900'
+            }}>🌟 Küçük Kaşif 🌟</span>
           </Link>
           
           <div style={styles.desktopLinks}>
@@ -165,14 +176,15 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
   },
   link: {
-    color: Colors.spacePurple,
+    color: Colors.pureWhite,
     textDecoration: 'none',
     fontSize: '1rem',
-    fontWeight: '500',
+    fontWeight: '700',
     position: 'relative',
     padding: '0.5rem 0',
     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-    opacity: 0.8,
+    opacity: 0.9,
+    textShadow: '1px 1px 2px rgba(0,0,0,0.3)',
   },
   linkActive: {
     opacity: 1,
@@ -236,6 +248,18 @@ const styles: Record<string, React.CSSProperties> = {
 // Add responsive styles and hover effects
 const styleSheet = document.createElement('style');
 styleSheet.textContent = `
+  @keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  
+  @keyframes bounce {
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-10px); }
+    60% { transform: translateY(-5px); }
+  }
+  
   .link::after {
     content: '';
     position: absolute;
@@ -243,7 +267,7 @@ styleSheet.textContent = `
     left: 0;
     width: 0;
     height: 2px;
-    background: ${Colors.spacePurple};
+    background: linear-gradient(45deg, ${Colors.rainbowRed}, ${Colors.sunshineYellow});
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   

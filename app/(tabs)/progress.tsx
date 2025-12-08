@@ -162,6 +162,7 @@ export default function ProgressScreen() {
     logic: 'Mantık',
     memory: 'Hafıza',
     science: 'Bilim',
+    fun: 'Eğlence',
   };
 
   const formatTime = (seconds: number) => {
@@ -218,7 +219,7 @@ export default function ProgressScreen() {
             <Trophy size={24} color="white" />
           </View>
           <Text style={styles.statValue}>{stats.totalScore}</Text>
-          <Text style={styles.statLabel}>Toplam Puan</Text>
+          <Text style={styles.statLabel}>Toplam Skor</Text>
         </View>
 
         <View style={styles.statCard}>
@@ -275,7 +276,7 @@ export default function ProgressScreen() {
             <View key={category} style={styles.categoryCard}>
               <View style={styles.categoryHeader}>
                 <Text style={styles.categoryName}>{categoryLabels[category] || category}</Text>
-                <Text style={styles.categoryScore}>{catData.score} skor</Text>
+                <Text style={styles.categoryScore}>{catData.score} Skor</Text>
               </View>
 
               <View style={styles.categoryStats}>

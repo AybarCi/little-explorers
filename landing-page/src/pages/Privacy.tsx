@@ -1,5 +1,6 @@
 import { Colors } from '../constants/colors';
 import { useState, useEffect } from 'react';
+import { FaShieldAlt, FaLock, FaUserShield, FaStar, FaHeart, FaMagic } from 'react-icons/fa';
 
 export default function Privacy() {
   const [visibleSections, setVisibleSections] = useState<Set<string>>(new Set());
@@ -33,25 +34,108 @@ export default function Privacy() {
   }, []);
 
   return (
-    <div style={styles.page}>
+    <>
+      <style>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-20px) rotate(5deg); }
+        }
+        @keyframes bounce {
+          0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+          40% { transform: translateY(-10px); }
+          60% { transform: translateY(-5px); }
+        }
+        @keyframes twinkle {
+          0%, 100% { opacity: 0.3; transform: scale(1); }
+          50% { opacity: 1; transform: scale(1.2); }
+        }
+        @keyframes gradientShift {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+      `}</style>
+      <div style={styles.page}>
+      {/* Animated Hero Section */}
       <section id="hero" style={{
         ...styles.hero,
         transform: `translateY(${scrollY * 0.3}px)`,
         opacity: visibleSections.has('hero') ? 1 : 0,
-        transition: 'opacity 0.8s ease-out, transform 0.8s ease-out'
+        transition: 'opacity 0.8s ease-out, transform 0.8s ease-out',
+        position: 'relative',
+        overflow: 'hidden'
       }}>
+        {/* Floating Background Elements */}
+        <div style={{
+          position: 'absolute',
+          top: '20%',
+          left: '10%',
+          fontSize: '3rem',
+          color: 'rgba(255,255,255,0.2)',
+          animation: 'float 6s ease-in-out infinite',
+          animationDelay: '0s'
+        }}><FaShieldAlt /></div>
+        <div style={{
+          position: 'absolute',
+          top: '60%',
+          right: '15%',
+          fontSize: '2.5rem',
+          color: 'rgba(255,255,255,0.15)',
+          animation: 'float 8s ease-in-out infinite',
+          animationDelay: '2s'
+        }}><FaLock /></div>
+        <div style={{
+          position: 'absolute',
+          top: '30%',
+          right: '25%',
+          fontSize: '2rem',
+          color: 'rgba(255,255,255,0.1)',
+          animation: 'float 7s ease-in-out infinite',
+          animationDelay: '4s'
+        }}><FaStar /></div>
+        <div style={{
+          position: 'absolute',
+          bottom: '20%',
+          left: '20%',
+          fontSize: '2.2rem',
+          color: 'rgba(255,255,255,0.12)',
+          animation: 'float 9s ease-in-out infinite',
+          animationDelay: '1s'
+        }}><FaMagic /></div>
+
         <div style={styles.container}>
+          <div style={{
+            ...styles.heroIcon,
+            transform: visibleSections.has('hero') ? 'scale(1) rotate(0deg)' : 'scale(0) rotate(-180deg)',
+            opacity: visibleSections.has('hero') ? 1 : 0,
+            transition: 'transform 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) 0.1s, opacity 0.8s ease-out 0.1s'
+          }}>
+            <FaUserShield />
+          </div>
           <h1 style={{
             ...styles.title,
             transform: visibleSections.has('hero') ? 'translateY(0)' : 'translateY(30px)',
             opacity: visibleSections.has('hero') ? 1 : 0,
-            transition: 'transform 0.8s ease-out 0.2s, opacity 0.8s ease-out 0.2s'
-          }}>Gizlilik Politikası</h1>
+            transition: 'transform 0.8s ease-out 0.2s, opacity 0.8s ease-out 0.2s',
+            color: Colors.brightYellow,
+            textShadow: '2px 2px 8px rgba(0,0,0,0.5)'
+          }}>🛡️ Gizlilik Politikası</h1>
           <p style={{
             ...styles.subtitle,
             transform: visibleSections.has('hero') ? 'translateY(0)' : 'translateY(30px)',
             opacity: visibleSections.has('hero') ? 1 : 0,
-            transition: 'transform 0.8s ease-out 0.4s, opacity 0.8s ease-out 0.4s'
+            transition: 'transform 0.8s ease-out 0.4s, opacity 0.8s ease-out 0.4s',
+            color: Colors.pureWhite,
+            fontSize: '1.3rem',
+            fontWeight: '500'
+          }}>🔒 Çocuklarınızın güvenliği bizim önceliğimiz</p>
+          <p style={{
+            transform: visibleSections.has('hero') ? 'translateY(0)' : 'translateY(30px)',
+            opacity: visibleSections.has('hero') ? 1 : 0,
+            transition: 'transform 0.8s ease-out 0.6s, opacity 0.8s ease-out 0.6s',
+            color: 'rgba(255,255,255,0.9)',
+            fontSize: '1rem',
+            marginTop: '1rem'
           }}>Son güncelleme: 2 Aralık 2024</p>
         </div>
       </section>
@@ -64,29 +148,68 @@ export default function Privacy() {
             opacity: visibleSections.has('content') ? 1 : 0,
             transition: 'transform 0.8s ease-out 0.2s, opacity 0.8s ease-out 0.2s'
           }}>
-            <section style={{
-              ...styles.section,
-              transform: visibleSections.has('content') ? 'translateY(0)' : 'translateY(30px)',
+            {/* Colorful Introduction Section */}
+            <div style={{
+              ...styles.introCard,
+              transform: visibleSections.has('content') ? 'translateY(0)' : 'translateY(40px)',
               opacity: visibleSections.has('content') ? 1 : 0,
-              transition: 'transform 0.6s ease-out 0.4s, opacity 0.6s ease-out 0.4s'
+              transition: 'transform 0.8s ease-out 0.3s, opacity 0.8s ease-out 0.3s',
+              background: `linear-gradient(135deg, ${Colors.spacePurple} 0%, ${Colors.darkPurple} 50%, ${Colors.navyBlue} 100%)`,
+              position: 'relative',
+              overflow: 'hidden'
             }}>
-              <h2 style={{
-                ...styles.sectionTitle,
-                transform: visibleSections.has('content') ? 'translateY(0)' : 'translateY(20px)',
-                opacity: visibleSections.has('content') ? 1 : 0,
-                transition: 'transform 0.6s ease-out 0.5s, opacity 0.6s ease-out 0.5s'
-              }}>1. Giriş</h2>
+              {/* Floating Icons */}
+              <div style={{
+                position: 'absolute',
+                top: '10px',
+                right: '20px',
+                fontSize: '2rem',
+                color: 'rgba(255,255,255,0.3)',
+                animation: 'float 6s ease-in-out infinite'
+              }}><FaHeart /></div>
+              <div style={{
+                position: 'absolute',
+                bottom: '15px',
+                left: '20px',
+                fontSize: '1.8rem',
+                color: 'rgba(255,255,255,0.2)',
+                animation: 'float 8s ease-in-out infinite',
+                animationDelay: '2s'
+              }}><FaMagic /></div>
+              
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                marginBottom: '1.5rem'
+              }}>
+                <div style={{
+                  fontSize: '3rem',
+                  color: Colors.brightYellow,
+                  marginRight: '1rem',
+                  animation: 'bounce 2s infinite'
+                }}>🛡️</div>
+                <h2 style={{
+                  ...styles.sectionTitle,
+                  color: Colors.brightYellow,
+                  margin: 0,
+                  textShadow: '1px 1px 3px rgba(0,0,0,0.3)'
+                }}>
+                <span style={{marginRight: '1rem', fontSize: '2.5rem'}}>🚀</span>
+                1. Giriş
+              </h2>
+              </div>
               <p style={{
                 ...styles.text,
-                transform: visibleSections.has('content') ? 'translateY(0)' : 'translateY(20px)',
-                opacity: visibleSections.has('content') ? 1 : 0,
-                transition: 'transform 0.6s ease-out 0.6s, opacity 0.6s ease-out 0.6s'
+                color: Colors.pureWhite,
+                fontSize: '1.1rem',
+                lineHeight: '1.7',
+                textShadow: '1px 1px 2px rgba(0,0,0,0.2)'
               }}>
-                Küçük Kaşif olarak, çocukların gizliliğini en üst düzeyde korumayı taahhüt ediyoruz.
+                <strong style={{color: Colors.brightYellow}}>Küçük Kaşif olarak</strong>, çocukların gizliliğini en üst düzeyde korumayı taahhüt ediyoruz.
                 Bu gizlilik politikası, uygulamamızı kullanırken hangi bilgileri topladığımızı,
                 nasıl kullandığımızı ve koruduğumuzu açıklamaktadır.
               </p>
-            </section>
+            </div>
 
             <section id="section2" style={{
               ...styles.section,
@@ -99,7 +222,10 @@ export default function Privacy() {
                 transform: visibleSections.has('section2') ? 'translateY(0)' : 'translateY(20px)',
                 opacity: visibleSections.has('section2') ? 1 : 0,
                 transition: 'transform 0.6s ease-out 0.3s, opacity 0.6s ease-out 0.3s'
-              }}>2. Topladığımız Bilgiler</h2>
+              }}>
+                <span style={{marginRight: '1rem', fontSize: '2.5rem'}}>📊</span>
+                2. Topladığımız Bilgiler
+              </h2>
               <h3 style={{
                 ...styles.subsectionTitle,
                 transform: visibleSections.has('section2') ? 'translateY(0)' : 'translateY(20px)',
@@ -181,7 +307,10 @@ export default function Privacy() {
                 transform: visibleSections.has('section3') ? 'translateY(0)' : 'translateY(20px)',
                 opacity: visibleSections.has('section3') ? 1 : 0,
                 transition: 'transform 0.6s ease-out 0.3s, opacity 0.6s ease-out 0.3s'
-              }}>3. Bilgilerin Kullanımı</h2>
+              }}>
+                <span style={{marginRight: '1rem', fontSize: '2.5rem'}}>🔧</span>
+                3. Bilgilerin Kullanımı
+              </h2>
               <p style={{
                 ...styles.text,
                 transform: visibleSections.has('section3') ? 'translateY(0)' : 'translateY(20px)',
@@ -215,7 +344,10 @@ export default function Privacy() {
                 transform: visibleSections.has('section4') ? 'translateY(0)' : 'translateY(20px)',
                 opacity: visibleSections.has('section4') ? 1 : 0,
                 transition: 'transform 0.6s ease-out 0.3s, opacity 0.6s ease-out 0.3s'
-              }}>4. Veri Güvenliği</h2>
+              }}>
+                <span style={{marginRight: '1rem', fontSize: '2.5rem'}}>🔒</span>
+                4. Veri Güvenliği
+              </h2>
               <p style={{
                 ...styles.text,
                 transform: visibleSections.has('section4') ? 'translateY(0)' : 'translateY(20px)',
@@ -248,7 +380,10 @@ export default function Privacy() {
                 transform: visibleSections.has('section5') ? 'translateY(0)' : 'translateY(20px)',
                 opacity: visibleSections.has('section5') ? 1 : 0,
                 transition: 'transform 0.6s ease-out 0.3s, opacity 0.6s ease-out 0.3s'
-              }}>5. Üçüncü Taraflarla Paylaşım</h2>
+              }}>
+                <span style={{marginRight: '1rem', fontSize: '2.5rem'}}>🔗</span>
+                5. Üçüncü Taraflarla Paylaşım
+              </h2>
               <p style={{
                 ...styles.text,
                 transform: visibleSections.has('section5') ? 'translateY(0)' : 'translateY(20px)',
@@ -271,7 +406,10 @@ export default function Privacy() {
                 transform: visibleSections.has('section6') ? 'translateY(0)' : 'translateY(20px)',
                 opacity: visibleSections.has('section6') ? 1 : 0,
                 transition: 'transform 0.6s ease-out 0.3s, opacity 0.6s ease-out 0.3s'
-              }}>6. Çocukların Gizliliği</h2>
+              }}>
+                <span style={{marginRight: '1rem', fontSize: '2.5rem'}}>👶</span>
+                6. Çocukların Gizliliği
+              </h2>
               <p style={{
                 ...styles.text,
                 transform: visibleSections.has('section6') ? 'translateY(0)' : 'translateY(20px)',
@@ -305,7 +443,10 @@ export default function Privacy() {
                 transform: visibleSections.has('section7') ? 'translateY(0)' : 'translateY(20px)',
                 opacity: visibleSections.has('section7') ? 1 : 0,
                 transition: 'transform 0.6s ease-out 0.3s, opacity 0.6s ease-out 0.3s'
-              }}>7. Veri Saklama ve Silme</h2>
+              }}>
+                <span style={{marginRight: '1rem', fontSize: '2.5rem'}}>🗑️</span>
+                7. Veri Saklama ve Silme
+              </h2>
               <p style={{
                 ...styles.text,
                 transform: visibleSections.has('section7') ? 'translateY(0)' : 'translateY(20px)',
@@ -337,7 +478,10 @@ export default function Privacy() {
                 transform: visibleSections.has('section8') ? 'translateY(0)' : 'translateY(20px)',
                 opacity: visibleSections.has('section8') ? 1 : 0,
                 transition: 'transform 0.6s ease-out 0.3s, opacity 0.6s ease-out 0.3s'
-              }}>8. Haklarınız</h2>
+              }}>
+                <span style={{marginRight: '1rem', fontSize: '2.5rem'}}>✅</span>
+                8. Haklarınız
+              </h2>
               <p style={{
                 ...styles.text,
                 transform: visibleSections.has('section8') ? 'translateY(0)' : 'translateY(20px)',
@@ -370,7 +514,10 @@ export default function Privacy() {
                 transform: visibleSections.has('section9') ? 'translateY(0)' : 'translateY(20px)',
                 opacity: visibleSections.has('section9') ? 1 : 0,
                 transition: 'transform 0.6s ease-out 0.3s, opacity 0.6s ease-out 0.3s'
-              }}>9. Politika Değişiklikleri</h2>
+              }}>
+                <span style={{marginRight: '1rem', fontSize: '2.5rem'}}>🔄</span>
+                9. Politika Değişiklikleri
+              </h2>
               <p style={{
                 ...styles.text,
                 transform: visibleSections.has('section9') ? 'translateY(0)' : 'translateY(20px)',
@@ -393,7 +540,10 @@ export default function Privacy() {
                 transform: visibleSections.has('section10') ? 'translateY(0)' : 'translateY(20px)',
                 opacity: visibleSections.has('section10') ? 1 : 0,
                 transition: 'transform 0.6s ease-out 0.3s, opacity 0.6s ease-out 0.3s'
-              }}>10. İletişim</h2>
+              }}>
+                <span style={{marginRight: '1rem', fontSize: '2.5rem'}}>📞</span>
+                10. İletişim
+              </h2>
               <p style={{
                 ...styles.text,
                 transform: visibleSections.has('section10') ? 'translateY(0)' : 'translateY(20px)',
@@ -416,19 +566,28 @@ export default function Privacy() {
         </div>
       </section>
     </div>
+  </>
   );
 }
 
 const styles: Record<string, React.CSSProperties> = {
   page: {
     minHeight: '100vh',
-    backgroundColor: '#fafbfc',
+    background: `linear-gradient(135deg, ${Colors.softBlue} 0%, ${Colors.lightPurple} 50%, ${Colors.softPink} 100%)`,
+    position: 'relative',
   },
   hero: {
-    background: `linear-gradient(135deg, ${Colors.spacePurple} 0%, ${Colors.darkPurple} 100%)`,
+    background: `linear-gradient(135deg, ${Colors.spacePurple} 0%, ${Colors.deepBlue} 40%, ${Colors.navyBlue} 70%, ${Colors.darkPurple} 100%)`,
     color: Colors.pureWhite,
-    padding: '6rem 2rem 4rem',
+    padding: '8rem 2rem 6rem',
     textAlign: 'center',
+    position: 'relative',
+  },
+  heroIcon: {
+    fontSize: '5rem',
+    color: Colors.brightYellow,
+    marginBottom: '2rem',
+    textShadow: '0 0 20px rgba(243, 156, 18, 0.5)',
   },
   container: {
     maxWidth: '900px',
@@ -436,35 +595,66 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '0 2rem',
   },
   title: {
-    fontSize: '3.5rem',
-    fontWeight: '700',
-    marginBottom: '1rem',
+    fontSize: '4rem',
+    fontWeight: '800',
+    marginBottom: '1.5rem',
     letterSpacing: '-0.02em',
+    background: `linear-gradient(45deg, ${Colors.brightYellow}, #FFD700)`,
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    backgroundClip: 'text',
+    textShadow: '2px 2px 4px rgba(0,0,0,0.3)',
   },
   subtitle: {
-    fontSize: '1.25rem',
-    opacity: 0.9,
-    fontWeight: '400',
+    fontSize: '1.4rem',
+    opacity: 0.95,
+    fontWeight: '500',
+    color: Colors.pureWhite,
+    textShadow: '1px 1px 3px rgba(0,0,0,0.4)',
+  },
+  introCard: {
+    padding: '3rem',
+    borderRadius: '25px',
+    marginBottom: '3rem',
+    boxShadow: '0 15px 35px rgba(0,0,0,0.1)',
+    border: '3px solid rgba(255,255,255,0.2)',
+    backdropFilter: 'blur(10px)',
   },
   content: {
     padding: '5rem 0',
+    position: 'relative',
   },
   contentBox: {
-    backgroundColor: Colors.pureWhite,
+    backgroundColor: 'rgba(255,255,255,0.95)',
     padding: '4rem',
-    borderRadius: '24px',
-    boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
-    border: '1px solid rgba(0,0,0,0.04)',
+    borderRadius: '30px',
+    boxShadow: '0 20px 60px rgba(0,0,0,0.1)',
+    border: '2px solid rgba(255,255,255,0.3)',
+    backdropFilter: 'blur(20px)',
+    position: 'relative',
+    overflow: 'hidden',
   },
   section: {
-    marginBottom: '3.5rem',
+    marginBottom: '4rem',
+    padding: '2.5rem',
+    borderRadius: '20px',
+    backgroundColor: 'rgba(255,255,255,0.8)',
+    border: '2px solid rgba(0,0,0,0.05)',
+    boxShadow: '0 8px 25px rgba(0,0,0,0.05)',
+    transition: 'transform 0.3s ease, box-shadow 0.3s ease',
   },
   sectionTitle: {
-    fontSize: '2rem',
-    fontWeight: '700',
-    color: Colors.spacePurple,
-    marginBottom: '1.5rem',
+    fontSize: '2.2rem',
+    fontWeight: '800',
+    marginBottom: '2rem',
     letterSpacing: '-0.01em',
+    background: `linear-gradient(45deg, ${Colors.spacePurple}, ${Colors.deepBlue})`,
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    backgroundClip: 'text',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '1rem',
   },
   subsectionTitle: {
     fontSize: '1.4rem',

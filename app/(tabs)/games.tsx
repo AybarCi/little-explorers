@@ -25,6 +25,7 @@ const categories: { value: GameCategory | 'all'; label: string }[] = [
   { value: 'logic', label: 'Mantık' },
   { value: 'memory', label: 'Hafıza' },
   { value: 'science', label: 'Bilim' },
+  { value: 'fun', label: 'Eğlence' },
 ];
 
 export default function GamesScreen() {
