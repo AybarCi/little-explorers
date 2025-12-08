@@ -178,7 +178,7 @@ export default function ProgressScreen() {
   const completionRate = totalGames > 0 ? Math.round((stats.completedGames / totalGames) * 100) : 0;
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 100 }}>
       <LinearGradient
         colors={[Colors.spacePurple, Colors.energyOrange]}
         start={{ x: 0, y: 0 }}

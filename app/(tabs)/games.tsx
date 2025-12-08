@@ -357,6 +357,7 @@ const styles = StyleSheet.create({
   },
   gamesList: {
     padding: 16,
+    paddingBottom: 100,
   },
   gameCard: {
     backgroundColor: 'white',

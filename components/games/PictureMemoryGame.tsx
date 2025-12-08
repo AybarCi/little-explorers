@@ -16,10 +16,10 @@ interface ScoreDetails {
 }
 
 const emojisByAge: Record<string, string[]> = {
-  '5-7': ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐨', '🐯', '🦁', '🐮', '🐷'],
-  '8-10': ['🚗', '🚕', '🚙', '🚌', '🚎', '🏎️', '🚓', '🚑', '🚲', '🛴', '✈️', '🚁'],
-  '11-13': ['🎮', '🎸', '🎭', '🎨', '🎬', '🎥', '🎹', '🎺', '🎻', '🥁', '🎷', '🎲'],
-  '14+': ['💻', '📱', '⌨️', '💽', '💾', '💿', '📀', '🖥️', '🖱️', '🕹️', '📷', '📹'],
+  '5-7': ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🐔', '🐧', '🐦', '🦆', '🦅', '🦉', '🦇', '🐺', '🐗', '🐴'],
+  '8-10': ['🚗', '🚕', '🚙', '🚌', '🚎', '🏎️', '🚓', '🚑', '🚲', '🛴', '✈️', '🚁', '🚂', '🚀', '🛸', '🚢', '⛵', '🛶', '🏍️', '🚜', '🛵', '🚃', '🚇', '🚈'],
+  '11-13': ['🎮', '🎸', '🎭', '🎨', '🎬', '🎥', '🎹', '🎺', '🎻', '🥁', '🎷', '🎲', '🎯', '🎳', '🏀', '⚽', '🎾', '🏓', '🎪', '🎠', '🎡', '🎢', '🎰', '🎧'],
+  '14+': ['💻', '📱', '⌨️', '💽', '💾', '💿', '📀', '🖥️', '🖱️', '🕹️', '📷', '📹', '📺', '📻', '🔭', '🔬', '💡', '🔦', '🔋', '🔌', '💰', '💳', '📦', '🧲'],
 };
 
 export default function PictureMemoryGame({ itemCount, onComplete, ageGroup }: PictureMemoryGameProps) {
@@ -38,22 +38,25 @@ export default function PictureMemoryGame({ itemCount, onComplete, ageGroup }: P
     const shuffled = [...emojis].sort(() => Math.random() - 0.5).slice(0, itemCount);
     setSelectedItems(shuffled);
 
-    // Generate distractors (emojis NOT shown)
+    // Generate distractors (emojis NOT shown) - same count as selected
     const notShownEmojis = emojis.filter(e => !shuffled.includes(e));
     const selectedDistractors = notShownEmojis
       .sort(() => Math.random() - 0.5)
-      .slice(0, shuffled.length);
+      .slice(0, itemCount); // Match itemCount for equal choices
     setDistractors(selectedDistractors);
   }, [ageGroup, itemCount]);
 
   useEffect(() => {
+    // Only start timer after instructions modal is closed
+    if (showInstructions) return;
+
     if (phase === 'memorize' && timeLeft > 0) {
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
       return () => clearTimeout(timer);
     } else if (phase === 'memorize' && timeLeft === 0) {
       setPhase('recall');
     }
-  }, [phase, timeLeft]);
+  }, [phase, timeLeft, showInstructions]);
 
   const handleItemSelect = (item: string) => {
     if (phase !== 'recall' || showResults) return;

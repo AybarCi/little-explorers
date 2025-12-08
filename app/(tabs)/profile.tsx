@@ -8,7 +8,7 @@ export default function ProfileScreen() {
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
   const { games } = useAppSelector((state) => state.games);
-  
+
   // Kullanıcı istatistiklerini doğrudan user objesinden al
   const displayStats = {
     total_points: user?.total_points || 0,
@@ -20,7 +20,7 @@ export default function ProfileScreen() {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 100 }}>
       <View style={styles.header}>
         <View style={styles.avatarContainer}>
           <Text style={styles.avatarText}>
@@ -66,30 +66,30 @@ export default function ProfileScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>İstatistikler</Text>
         <View style={styles.statsGrid}>
-            <View style={styles.statCard}>
-              <View style={styles.statIconContainer}>
-                <Trophy size={28} color="#F6AD55" />
-              </View>
-              <Text style={styles.statValue}>{displayStats.total_points}</Text>
-              <Text style={styles.statLabel}>Toplam Puan</Text>
+          <View style={styles.statCard}>
+            <View style={styles.statIconContainer}>
+              <Trophy size={28} color="#F6AD55" />
             </View>
-
-            <View style={styles.statCard}>
-              <View style={styles.statIconContainer}>
-                <Trophy size={28} color="#48BB78" />
-              </View>
-              <Text style={styles.statValue}>{displayStats.completed_games_count}</Text>
-              <Text style={styles.statLabel}>Tamamlanan</Text>
-            </View>
-
-            <View style={styles.statCard}>
-              <View style={styles.statIconContainer}>
-                <Trophy size={28} color="#4299E1" />
-              </View>
-              <Text style={styles.statValue}>{games.length}</Text>
-              <Text style={styles.statLabel}>Toplam Oyun</Text>
-            </View>
+            <Text style={styles.statValue}>{displayStats.total_points}</Text>
+            <Text style={styles.statLabel}>Toplam Puan</Text>
           </View>
+
+          <View style={styles.statCard}>
+            <View style={styles.statIconContainer}>
+              <Trophy size={28} color="#48BB78" />
+            </View>
+            <Text style={styles.statValue}>{displayStats.completed_games_count}</Text>
+            <Text style={styles.statLabel}>Tamamlanan</Text>
+          </View>
+
+          <View style={styles.statCard}>
+            <View style={styles.statIconContainer}>
+              <Trophy size={28} color="#4299E1" />
+            </View>
+            <Text style={styles.statValue}>{games.length}</Text>
+            <Text style={styles.statLabel}>Toplam Oyun</Text>
+          </View>
+        </View>
       </View>
 
       <View style={styles.section}>

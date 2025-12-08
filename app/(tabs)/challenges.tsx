@@ -234,7 +234,7 @@ export default function ChallengesScreen() {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 100 }}>
       <LinearGradient
         colors={[Colors.spacePurple, Colors.energyOrange]}
         start={{ x: 0, y: 0 }}

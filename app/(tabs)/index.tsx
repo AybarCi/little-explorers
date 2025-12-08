@@ -120,7 +120,7 @@ export default function HomeScreen() {
   ];
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 100 }}>
       <LinearGradient
         colors={[Colors.spacePurple, Colors.energyOrange]}
         start={{ x: 0, y: 0 }}
@@ -259,17 +259,17 @@ export default function HomeScreen() {
 
         {games.filter((g) => g.user_progress && !g.user_progress.completed)
           .length === 0 && (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyEmoji}>🎮</Text>
-            <Text style={styles.emptyText}>Henüz oyun başlatmadınız</Text>
-            <TouchableOpacity
-              style={styles.startButton}
-              onPress={() => router.push('/(tabs)/games')}
-            >
-              <Text style={styles.startButtonText}>Oyunları Keşfet</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyEmoji}>🎮</Text>
+              <Text style={styles.emptyText}>Henüz oyun başlatmadınız</Text>
+              <TouchableOpacity
+                style={styles.startButton}
+                onPress={() => router.push('/(tabs)/games')}
+              >
+                <Text style={styles.startButtonText}>Oyunları Keşfet</Text>
+              </TouchableOpacity>
+            </View>
+          )}
       </View>
     </ScrollView>
   );
