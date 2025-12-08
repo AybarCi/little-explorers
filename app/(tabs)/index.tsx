@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useRef } from 'react';
+import { useEffect, useCallback, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -10,22 +10,56 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
-import { BookOpen, Trophy, TrendingUp, Zap } from 'lucide-react-native';
+import { Trophy, Zap, Diamond, Gamepad2, BarChart3, Target, User, CheckCircle } from 'lucide-react-native';
 import { useAppSelector } from '@/hooks/useAppSelector';
 import { useAppDispatch } from '@/hooks/useAppDispatch';
 import { fetchGames } from '@/store/slices/gamesSlice';
+import { initializeCurrency, regenerateEnergy, loadCurrencyFromStorage, CURRENCY_CONSTANTS } from '@/store/slices/currencySlice';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/constants/colors';
+import EnergyModal from '@/components/EnergyModal';
+import DiamondModal from '@/components/DiamondModal';
 
 export default function HomeScreen() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
   const { games } = useAppSelector((state) => state.games);
+  const { energy, diamonds, isInitialized } = useAppSelector((state) => state.currency);
   const headerAnim = useRef(new Animated.Value(0)).current;
   const float1 = useRef(new Animated.Value(0)).current;
   const float2 = useRef(new Animated.Value(0)).current;
   const gridAnim = useRef(new Animated.Value(0)).current;
+
+  const [showEnergyModal, setShowEnergyModal] = useState(false);
+  const [showDiamondModal, setShowDiamondModal] = useState(false);
+
+  // Initialize currency from storage
+  useEffect(() => {
+    const initCurrency = async () => {
+      const saved = await loadCurrencyFromStorage();
+      if (saved) {
+        dispatch(initializeCurrency(saved));
+      } else {
+        dispatch(initializeCurrency({
+          energy: CURRENCY_CONSTANTS.MAX_ENERGY,
+          diamonds: 0,
+          lastEnergyUpdate: Date.now(),
+        }));
+      }
+    };
+    if (!isInitialized) {
+      initCurrency();
+    }
+  }, [isInitialized]);
+
+  // Energy regeneration timer
+  useEffect(() => {
+    const interval = setInterval(() => {
+      dispatch(regenerateEnergy());
+    }, 60000); // Check every minute
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (user?.id) {
@@ -94,25 +128,25 @@ export default function HomeScreen() {
 
   const quickActions = [
     {
-      icon: BookOpen,
+      icon: Gamepad2,
       label: 'Oyunlar',
       color: '#4299E1',
       onPress: () => router.push('/(tabs)/games'),
     },
     {
-      icon: TrendingUp,
+      icon: BarChart3,
       label: 'İlerleme',
       color: '#ED8936',
       onPress: () => router.push('/(tabs)/progress'),
     },
     {
-      icon: Zap,
+      icon: Target,
       label: 'Görevler',
       color: '#9F7AEA',
       onPress: () => router.push('/(tabs)/challenges'),
     },
     {
-      icon: Trophy,
+      icon: User,
       label: 'Profil',
       color: '#48BB78',
       onPress: () => router.push('/(tabs)/profile'),
@@ -170,6 +204,31 @@ export default function HomeScreen() {
         />
       </LinearGradient>
 
+      {/* Energy & Diamond Bar */}
+      <View style={styles.currencyBar}>
+        <TouchableOpacity style={styles.currencyItem} onPress={() => setShowEnergyModal(true)}>
+          <View style={styles.currencyIconContainer}>
+            <Zap size={24} color="#F6AD55" fill="#F6AD55" />
+          </View>
+          <Text style={styles.currencyValue}>{energy}/{CURRENCY_CONSTANTS.MAX_ENERGY}</Text>
+          {energy < CURRENCY_CONSTANTS.MAX_ENERGY && (
+            <View style={styles.addBadge}>
+              <Text style={styles.addBadgeText}>+</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.currencyItem} onPress={() => setShowDiamondModal(true)}>
+          <View style={[styles.currencyIconContainer, { backgroundColor: '#DBEAFE' }]}>
+            <Diamond size={24} color="#60A5FA" fill="#60A5FA" />
+          </View>
+          <Text style={styles.currencyValue}>{diamonds}</Text>
+          <View style={styles.addBadge}>
+            <Text style={styles.addBadgeText}>+</Text>
+          </View>
+        </TouchableOpacity>
+      </View>
+
       <View style={styles.statsContainer}>
         <View style={styles.statCard}>
           <View style={styles.statIcon}>
@@ -181,7 +240,7 @@ export default function HomeScreen() {
 
         <View style={styles.statCard}>
           <View style={styles.statIcon}>
-            <BookOpen size={24} color="#4299E1" />
+            <CheckCircle size={24} color="#4299E1" />
           </View>
           <Text style={styles.statValue}>{completedGames}</Text>
           <Text style={styles.statLabel}>Tamamlanan</Text>
@@ -210,13 +269,11 @@ export default function HomeScreen() {
           {quickActions.map((action, index) => (
             <TouchableOpacity
               key={index}
-              style={[styles.actionCard, { borderLeftColor: action.color }]}
+              style={[styles.actionCard, { backgroundColor: action.color }]}
               onPress={action.onPress}
             >
-              <View
-                style={[styles.actionIcon, { backgroundColor: action.color }]}
-              >
-                <action.icon size={24} color="white" />
+              <View style={styles.actionIcon}>
+                <action.icon size={32} color="white" />
               </View>
               <Text style={styles.actionLabel}>{action.label}</Text>
             </TouchableOpacity>
@@ -224,53 +281,19 @@ export default function HomeScreen() {
         </Animated.View>
       </View>
 
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Devam Eden Oyunlar</Text>
-          <TouchableOpacity onPress={() => router.push('/(tabs)/games')}>
-            <Text style={styles.seeAll}>Tümünü Gör</Text>
-          </TouchableOpacity>
-        </View>
-
-        {games
-          .filter((g) => g.user_progress && !g.user_progress.completed)
-          .slice(0, 3)
-          .map((game) => (
-            <TouchableOpacity
-              key={game.id}
-              style={styles.gameCard}
-              onPress={() => router.push(`/game/${game.id}` as any)}
-            >
-              <View style={styles.gameIconContainer}>
-                <Text style={styles.gameIcon}>{game.title.charAt(0)}</Text>
-              </View>
-              <View style={styles.gameInfo}>
-                <Text style={styles.gameTitle}>{game.title}</Text>
-                <Text style={styles.gameCategory}>{game.category}</Text>
-              </View>
-              <View style={styles.gameScore}>
-                <Text style={styles.scoreValue}>
-                  {game.user_progress?.score || 0}
-                </Text>
-                <Text style={styles.scoreLabel}>puan</Text>
-              </View>
-            </TouchableOpacity>
-          ))}
-
-        {games.filter((g) => g.user_progress && !g.user_progress.completed)
-          .length === 0 && (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyEmoji}>🎮</Text>
-              <Text style={styles.emptyText}>Henüz oyun başlatmadınız</Text>
-              <TouchableOpacity
-                style={styles.startButton}
-                onPress={() => router.push('/(tabs)/games')}
-              >
-                <Text style={styles.startButtonText}>Oyunları Keşfet</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-      </View>
+      {/* Modals */}
+      <EnergyModal
+        visible={showEnergyModal}
+        onClose={() => setShowEnergyModal(false)}
+        onWatchAd={() => {
+          setShowEnergyModal(false);
+          setShowDiamondModal(true);
+        }}
+      />
+      <DiamondModal
+        visible={showDiamondModal}
+        onClose={() => setShowDiamondModal(false)}
+      />
     </ScrollView>
   );
 }
@@ -405,29 +428,28 @@ const styles = StyleSheet.create({
   },
   actionCard: {
     width: '48%',
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderLeftWidth: 4,
-    shadowColor: Colors.spacePurple,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
+    borderRadius: 20,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
+    alignItems: 'center',
   },
   actionIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(255,255,255,0.25)',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 12,
   },
   actionLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.spacePurple,
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFF',
   },
   gameCard: {
     backgroundColor: 'white',
@@ -509,5 +531,53 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 14,
     fontWeight: '600',
+  },
+  currencyBar: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    gap: 16,
+    backgroundColor: Colors.pureWhite,
+  },
+  currencyItem: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F7FAFC',
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#E2E8F0',
+    gap: 10,
+  },
+  currencyIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#FEFCBF',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  currencyValue: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#2D3748',
+  },
+  addBadge: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#48BB78',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  addBadgeText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '700',
   },
 });

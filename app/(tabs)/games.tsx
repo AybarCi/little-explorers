@@ -17,6 +17,7 @@ import { fetchGames, setSelectedCategory } from '@/store/slices/gamesSlice';
 import { Game, GameCategory } from '@/types/game';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/constants/colors';
+import { getGameEmoji, getCategoryColor } from '@/utils/gameIcons';
 
 const categories: { value: GameCategory | 'all'; label: string }[] = [
   { value: 'all', label: 'Tümü' },
@@ -99,44 +100,50 @@ export default function GamesScreen() {
     );
   };
 
-  const renderGame = ({ item }: { item: Game }) => (
-    <TouchableOpacity
-      style={styles.gameCard}
-      onPress={() => router.push(`/game/${item.id}` as any)}
-    >
-      <View style={styles.gameIconContainer}>
-        <Text style={styles.gameIcon}>{item.title.charAt(0)}</Text>
-      </View>
+  const renderGame = ({ item }: { item: Game }) => {
+    const gameType = (item.game_data as any)?.type || '';
+    const emoji = getGameEmoji(gameType, item.category);
+    const bgColor = getCategoryColor(item.category);
 
-      <View style={styles.gameInfo}>
-        <Text style={styles.gameTitle}>{item.title}</Text>
-        <Text style={styles.gameDescription} numberOfLines={2}>
-          {item.description}
-        </Text>
-
-        <View style={styles.gameMetaRow}>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{item.category}</Text>
-          </View>
-          <View style={[styles.badge, styles.difficultyBadge]}>
-            <Text style={styles.badgeText}>{item.difficulty}</Text>
-          </View>
-          <Text style={styles.pointsText}>{item.points} puan</Text>
+    return (
+      <TouchableOpacity
+        style={styles.gameCard}
+        onPress={() => router.push(`/game/${item.id}` as any)}
+      >
+        <View style={[styles.gameIconContainer, { backgroundColor: bgColor }]}>
+          <Text style={styles.gameIcon}>{emoji}</Text>
         </View>
 
-        {item.user_progress && (
-          <View style={styles.progressRow}>
-            <Text style={styles.progressText}>
-              Skor: {item.user_progress.score}
-            </Text>
-            {item.user_progress.completed && (
-              <Text style={styles.completedText}>✓ Tamamlandı</Text>
-            )}
+        <View style={styles.gameInfo}>
+          <Text style={styles.gameTitle}>{item.title}</Text>
+          <Text style={styles.gameDescription} numberOfLines={2}>
+            {item.description}
+          </Text>
+
+          <View style={styles.gameMetaRow}>
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{item.category}</Text>
+            </View>
+            <View style={[styles.badge, styles.difficultyBadge]}>
+              <Text style={styles.badgeText}>{item.difficulty}</Text>
+            </View>
+            <Text style={styles.pointsText}>{item.points} puan</Text>
           </View>
-        )}
-      </View>
-    </TouchableOpacity>
-  );
+
+          {item.user_progress && (
+            <View style={styles.progressRow}>
+              <Text style={styles.progressText}>
+                Skor: {item.user_progress.score}
+              </Text>
+              {item.user_progress.completed && (
+                <Text style={styles.completedText}>✓ Tamamlandı</Text>
+              )}
+            </View>
+          )}
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View style={styles.container}>

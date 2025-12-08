@@ -12,6 +12,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft, Play } from 'lucide-react-native';
 import { useAppSelector } from '@/hooks/useAppSelector';
 import { Game } from '@/types/game';
+import { getGameEmoji, getCategoryColor } from '@/utils/gameIcons';
 
 import Constants from 'expo-constants';
 
@@ -107,8 +108,8 @@ export default function GameDetailScreen() {
         {game.image_url ? (
           <Image source={{ uri: game.image_url }} style={styles.heroImage} />
         ) : (
-          <View style={[styles.heroImage, styles.placeholderHero]}>
-            <Text style={styles.placeholderText}>{game.title.charAt(0)}</Text>
+          <View style={[styles.heroImage, styles.placeholderHero, { backgroundColor: getCategoryColor(game.category) }]}>
+            <Text style={styles.placeholderText}>{getGameEmoji((game.game_data as any)?.type || '', game.category)}</Text>
           </View>
         )}
 

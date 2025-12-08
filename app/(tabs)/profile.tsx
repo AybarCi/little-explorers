@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { LogOut, Mail, Calendar, Trophy } from 'lucide-react-native';
+import { LogOut, Mail, Calendar, Trophy, Zap, Diamond } from 'lucide-react-native';
 import { useAppDispatch } from '@/hooks/useAppDispatch';
 import { useAppSelector } from '@/hooks/useAppSelector';
 import { signout } from '@/store/slices/authSlice';
+import { CURRENCY_CONSTANTS } from '@/store/slices/currencySlice';
 export default function ProfileScreen() {
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
   const { games } = useAppSelector((state) => state.games);
+  const { energy, diamonds } = useAppSelector((state) => state.currency);
 
   // Kullanıcı istatistiklerini doğrudan user objesinden al
   const displayStats = {
@@ -68,26 +70,26 @@ export default function ProfileScreen() {
         <View style={styles.statsGrid}>
           <View style={styles.statCard}>
             <View style={styles.statIconContainer}>
-              <Trophy size={28} color="#F6AD55" />
+              <Zap size={28} color="#F6AD55" fill="#F6AD55" />
             </View>
-            <Text style={styles.statValue}>{displayStats.total_points}</Text>
-            <Text style={styles.statLabel}>Toplam Puan</Text>
+            <Text style={styles.statValue}>{energy}/{CURRENCY_CONSTANTS.MAX_ENERGY}</Text>
+            <Text style={styles.statLabel}>Enerji</Text>
+          </View>
+
+          <View style={styles.statCard}>
+            <View style={styles.statIconContainer}>
+              <Diamond size={28} color="#60A5FA" fill="#60A5FA" />
+            </View>
+            <Text style={styles.statValue}>{diamonds}</Text>
+            <Text style={styles.statLabel}>Elmas</Text>
           </View>
 
           <View style={styles.statCard}>
             <View style={styles.statIconContainer}>
               <Trophy size={28} color="#48BB78" />
             </View>
-            <Text style={styles.statValue}>{displayStats.completed_games_count}</Text>
-            <Text style={styles.statLabel}>Tamamlanan</Text>
-          </View>
-
-          <View style={styles.statCard}>
-            <View style={styles.statIconContainer}>
-              <Trophy size={28} color="#4299E1" />
-            </View>
-            <Text style={styles.statValue}>{games.length}</Text>
-            <Text style={styles.statLabel}>Toplam Oyun</Text>
+            <Text style={styles.statValue}>{displayStats.total_points}</Text>
+            <Text style={styles.statLabel}>Puan</Text>
           </View>
         </View>
       </View>

@@ -6,13 +6,15 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  Modal,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { ArrowLeft, Trophy } from 'lucide-react-native';
+import { ArrowLeft, Trophy, Zap } from 'lucide-react-native';
 import { useAppSelector } from '@/hooks/useAppSelector';
 import { useAppDispatch } from '@/hooks/useAppDispatch';
 import { fetchGames, saveGameProgress, fetchUserProgress } from '@/store/slices/gamesSlice';
 import { ensureValidSession, refreshSession, updateUserStats } from '@/store/slices/authSlice';
+import { consumeEnergy, saveCurrencyToStorage } from '@/store/slices/currencySlice';
 import { Game } from '@/types/game';
 import { AuthSession } from '@/types/auth';
 import MathGame from '@/components/games/MathGame';
@@ -52,10 +54,31 @@ export default function PlayGameScreen() {
   const [error, setError] = useState<string | null>(null);
   const [completed, setCompleted] = useState(false);
   const [finalScore, setFinalScore] = useState(0);
+  const [showNoEnergyModal, setShowNoEnergyModal] = useState(false);
+  const [energyConsumed, setEnergyConsumed] = useState(false);
   const { user, session: currentSession } = useAppSelector((state) => state.auth);
+  const { energy, diamonds, lastEnergyUpdate } = useAppSelector((state) => state.currency);
   const dispatch = useAppDispatch();
   const router = useRouter();
   const [startTime] = useState(Date.now());
+
+  // Check and consume energy when game loads
+  useEffect(() => {
+    if (game && !energyConsumed && !loading) {
+      if (energy > 0) {
+        dispatch(consumeEnergy());
+        // Save to storage
+        saveCurrencyToStorage({
+          energy: energy - 1,
+          diamonds,
+          lastEnergyUpdate,
+        });
+        setEnergyConsumed(true);
+      } else {
+        setShowNoEnergyModal(true);
+      }
+    }
+  }, [game, loading, energyConsumed, energy]);
 
   useEffect(() => {
     fetchGame();
@@ -438,6 +461,28 @@ export default function PlayGameScreen() {
       </View>
 
       {renderGame()}
+
+      {/* No Energy Modal */}
+      <Modal visible={showNoEnergyModal} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.noEnergyModal}>
+            <Zap size={64} color="#F6AD55" />
+            <Text style={styles.noEnergyTitle}>Enerji Bitti! ⚡</Text>
+            <Text style={styles.noEnergyText}>
+              Oyun oynamak için enerjin yok. Enerji 2 saatte 1 tane yenilenir veya elmas ile doldurabilirsin.
+            </Text>
+            <TouchableOpacity
+              style={styles.noEnergyButton}
+              onPress={() => {
+                setShowNoEnergyModal(false);
+                router.back();
+              }}
+            >
+              <Text style={styles.noEnergyButtonText}>Tamam</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -566,6 +611,44 @@ const styles = StyleSheet.create({
   },
   secondaryButtonText: {
     color: '#2D3748',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  noEnergyModal: {
+    backgroundColor: '#FFF',
+    borderRadius: 24,
+    padding: 32,
+    alignItems: 'center',
+    marginHorizontal: 24,
+  },
+  noEnergyTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#2D3748',
+    marginTop: 16,
+    marginBottom: 12,
+  },
+  noEnergyText: {
+    fontSize: 16,
+    color: '#718096',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 24,
+  },
+  noEnergyButton: {
+    backgroundColor: '#4299E1',
+    paddingHorizontal: 48,
+    paddingVertical: 14,
+    borderRadius: 12,
+  },
+  noEnergyButtonText: {
+    color: '#FFF',
     fontSize: 16,
     fontWeight: '700',
   },
