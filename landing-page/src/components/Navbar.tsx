@@ -306,6 +306,11 @@ styleSheet.textContent = `
       font-size: 1.5rem !important;
     }
     
+    .logoImage {
+      width: 50px !important;
+      height: 50px !important;
+    }
+    
     .container {
       padding: 0 1.5rem !important;
     }
