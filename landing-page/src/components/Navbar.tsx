@@ -135,12 +135,12 @@ const styles: Record<string, React.CSSProperties> = {
     WebkitBackdropFilter: 'blur(20px)',
     borderBottom: '1px solid rgba(65, 49, 122, 0.1)',
     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-    padding: '1rem 0',
+    padding: '1.5rem 0',
   },
   navScrolled: {
     backgroundColor: 'rgba(255, 255, 255, 0.98)',
     boxShadow: '0 2px 12px rgba(0,0,0,0.1)',
-    padding: '0.75rem 0',
+    padding: '1rem 0',
   },
   container: {
     maxWidth: '1200px',
@@ -158,8 +158,8 @@ const styles: Record<string, React.CSSProperties> = {
     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   },
   logoImage: {
-    width: '40px',
-    height: '40px',
+    width: '80px',
+    height: '80px',
     objectFit: 'contain',
     filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))',
     transition: 'transform 0.3s ease',
