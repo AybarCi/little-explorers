@@ -20,6 +20,16 @@ const AVATAR_IMAGES: Record<string, any> = {
   robot: require('@/assets/avatars/robot.png'),
   superhero: require('@/assets/avatars/superhero.png'),
   wizard: require('@/assets/avatars/wizard.png'),
+  pirate: require('@/assets/avatars/pirate.png'),
+  princess: require('@/assets/avatars/princess.png'),
+  knight: require('@/assets/avatars/knight.png'),
+  vampire: require('@/assets/avatars/vampire.png'),
+  zombie: require('@/assets/avatars/zombie.png'),
+  fairy: require('@/assets/avatars/fairy.png'),
+  alien: require('@/assets/avatars/alien.png'),
+  sailor: require('@/assets/avatars/sailor.png'),
+  pilot: require('@/assets/avatars/pilot.png'),
+  king: require('@/assets/avatars/king.png'),
 };
 
 interface UserAppearance {
@@ -50,13 +60,23 @@ export default function ProfileScreen() {
           },
         }
       );
-      const data = await response.json();
+      const data = await response.json() as {
+        avatars?: { emoji: any[]; premium: any[] };
+        frames?: any[];
+        badges?: any[];
+        userProfile?: {
+          current_avatar_id?: string;
+          current_frame_id?: string;
+          current_badge_id?: string;
+        };
+      };
 
       if (data.userProfile) {
+        const userProfile = data.userProfile;
         // Get avatar details
-        if (data.avatars && data.userProfile.current_avatar_id) {
+        if (data.avatars && userProfile.current_avatar_id) {
           const allAvatars = [...(data.avatars.emoji || []), ...(data.avatars.premium || [])];
-          const currentAvatar = allAvatars.find((a: any) => a.id === data.userProfile.current_avatar_id);
+          const currentAvatar = allAvatars.find((a: any) => a.id === userProfile.current_avatar_id);
           if (currentAvatar) {
             setAppearance(prev => ({
               ...prev,
@@ -67,16 +87,16 @@ export default function ProfileScreen() {
         }
 
         // Get frame details
-        if (data.frames && data.userProfile.current_frame_id) {
-          const currentFrame = data.frames.find((f: any) => f.id === data.userProfile.current_frame_id);
+        if (data.frames && userProfile.current_frame_id) {
+          const currentFrame = data.frames.find((f: any) => f.id === userProfile.current_frame_id);
           if (currentFrame) {
             setAppearance(prev => ({ ...prev, frame_color: currentFrame.color_primary }));
           }
         }
 
         // Get badge details
-        if (data.badges && data.userProfile.current_badge_id) {
-          const currentBadge = data.badges.find((b: any) => b.id === data.userProfile.current_badge_id);
+        if (data.badges && userProfile.current_badge_id) {
+          const currentBadge = data.badges.find((b: any) => b.id === userProfile.current_badge_id);
           if (currentBadge) {
             setAppearance(prev => ({ ...prev, badge_emoji: currentBadge.emoji }));
           }

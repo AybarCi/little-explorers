@@ -32,6 +32,16 @@ const AVATAR_IMAGES: Record<string, any> = {
     robot: require('@/assets/avatars/robot.png'),
     superhero: require('@/assets/avatars/superhero.png'),
     wizard: require('@/assets/avatars/wizard.png'),
+    pirate: require('@/assets/avatars/pirate.png'),
+    princess: require('@/assets/avatars/princess.png'),
+    knight: require('@/assets/avatars/knight.png'),
+    vampire: require('@/assets/avatars/vampire.png'),
+    zombie: require('@/assets/avatars/zombie.png'),
+    fairy: require('@/assets/avatars/fairy.png'),
+    alien: require('@/assets/avatars/alien.png'),
+    sailor: require('@/assets/avatars/sailor.png'),
+    pilot: require('@/assets/avatars/pilot.png'),
+    king: require('@/assets/avatars/king.png'),
 };
 
 interface ShopItem {
