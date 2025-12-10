@@ -9,6 +9,7 @@ import {
     Easing,
     ActivityIndicator,
     RefreshControl,
+    Image,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Trophy, Star, Medal, Crown } from 'lucide-react-native';
@@ -20,12 +21,30 @@ import Constants from 'expo-constants';
 const SUPABASE_URL = Constants.expoConfig?.extra?.supabaseUrl;
 const SUPABASE_ANON_KEY = Constants.expoConfig?.extra?.supabaseAnonKey;
 
+// Premium avatar images
+const AVATAR_IMAGES: Record<string, any> = {
+    astronaut: require('@/assets/avatars/astronaut.png'),
+    ninja: require('@/assets/avatars/ninja.png'),
+    robot: require('@/assets/avatars/robot.png'),
+    superhero: require('@/assets/avatars/superhero.png'),
+    wizard: require('@/assets/avatars/wizard.png'),
+};
+
 interface LeaderboardEntry {
     rank: number;
     user_id: string;
     name: string;
     value: number;
     age_group: string;
+    // Avatar info
+    avatar_emoji?: string | null;
+    avatar_image_key?: string | null;
+    avatar_category?: string | null;
+    // Frame info
+    frame_color?: string | null;
+    frame_color_secondary?: string | null;
+    // Badge info
+    badge_emoji?: string | null;
 }
 
 interface LeaderboardResponse {
@@ -125,6 +144,40 @@ export default function LeaderboardScreen() {
 
     const currentUserRank = leaderboard.findIndex(entry => entry.user_id === user?.id) + 1;
 
+    const renderAvatar = (item: LeaderboardEntry) => {
+        const frameColor = item.frame_color || Colors.primary;
+
+        // Premium avatar with image
+        if (item.avatar_image_key && AVATAR_IMAGES[item.avatar_image_key]) {
+            return (
+                <View style={[styles.avatarContainer, { borderColor: frameColor, borderWidth: item.frame_color ? 3 : 0 }]}>
+                    <Image
+                        source={AVATAR_IMAGES[item.avatar_image_key]}
+                        style={styles.avatarImage}
+                    />
+                </View>
+            );
+        }
+
+        // Emoji avatar
+        if (item.avatar_emoji) {
+            return (
+                <View style={[styles.avatarContainer, styles.emojiAvatarContainer, { borderColor: frameColor, borderWidth: item.frame_color ? 3 : 0 }]}>
+                    <Text style={styles.emojiAvatar}>{item.avatar_emoji}</Text>
+                </View>
+            );
+        }
+
+        // Default: first letter
+        return (
+            <View style={[styles.avatarContainer, { borderColor: frameColor, borderWidth: item.frame_color ? 3 : 0 }]}>
+                <Text style={styles.avatarText}>
+                    {item.name?.charAt(0).toUpperCase() || '?'}
+                </Text>
+            </View>
+        );
+    };
+
     const renderItem = ({ item }: { item: LeaderboardEntry }) => {
         const isCurrentUser = item.user_id === user?.id;
 
@@ -140,17 +193,18 @@ export default function LeaderboardScreen() {
                     {getRankIcon(item.rank)}
                 </View>
 
-                <View style={styles.avatarContainer}>
-                    <Text style={styles.avatarText}>
-                        {item.name?.charAt(0).toUpperCase() || '?'}
-                    </Text>
-                </View>
+                {renderAvatar(item)}
 
                 <View style={styles.userInfo}>
-                    <Text style={[styles.userName, isCurrentUser && styles.currentUserName]}>
-                        {item.name}
-                        {isCurrentUser && ' (Sen)'}
-                    </Text>
+                    <View style={styles.nameRow}>
+                        <Text style={[styles.userName, isCurrentUser && styles.currentUserName]}>
+                            {item.name}
+                            {isCurrentUser && ' (Sen)'}
+                        </Text>
+                        {item.badge_emoji && (
+                            <Text style={styles.badgeEmoji}>{item.badge_emoji}</Text>
+                        )}
+                    </View>
                     <Text style={styles.ageGroup}>{item.age_group} Yaş</Text>
                 </View>
 
@@ -163,6 +217,7 @@ export default function LeaderboardScreen() {
             </View>
         );
     };
+
 
     return (
         <View style={styles.container}>
@@ -371,6 +426,25 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: '700',
         color: '#FFF',
+    },
+    avatarImage: {
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+    },
+    emojiAvatarContainer: {
+        backgroundColor: '#FFF',
+    },
+    emojiAvatar: {
+        fontSize: 24,
+    },
+    nameRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+    },
+    badgeEmoji: {
+        fontSize: 16,
     },
     userInfo: {
         flex: 1,

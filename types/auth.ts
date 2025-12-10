@@ -6,6 +6,10 @@ export interface User {
   created_at: string;
   total_points?: number;
   completed_games_count?: number;
+  diamonds?: number;
+  current_avatar_id?: string;
+  current_frame_id?: string;
+  current_badge_id?: string;
 }
 
 export interface AuthSession {
