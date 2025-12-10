@@ -5,15 +5,14 @@ import {
     Modal,
     StyleSheet,
     TouchableOpacity,
-    Dimensions,
+    ScrollView,
 } from 'react-native';
 import { X, Zap, Clock, Diamond } from 'lucide-react-native';
 import { useAppSelector } from '@/hooks/useAppSelector';
 import { useAppDispatch } from '@/hooks/useAppDispatch';
 import { refillEnergyWithDiamonds, CURRENCY_CONSTANTS, saveCurrencyToStorage } from '@/store/slices/currencySlice';
 import { Colors } from '@/constants/colors';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+import { useResponsive } from '@/utils/responsive';
 
 interface EnergyModalProps {
     visible: boolean;
@@ -25,6 +24,7 @@ export default function EnergyModal({ visible, onClose, onWatchAd }: EnergyModal
     const dispatch = useAppDispatch();
     const { energy, diamonds, lastEnergyUpdate } = useAppSelector((state) => state.currency);
     const [countdown, setCountdown] = useState('');
+    const { getModalMaxWidth, isTablet, scale } = useResponsive();
 
     const { MAX_ENERGY, ENERGY_REGEN_TIME_MS, ENERGY_REFILL_COST } = CURRENCY_CONSTANTS;
 
@@ -51,7 +51,6 @@ export default function EnergyModal({ visible, onClose, onWatchAd }: EnergyModal
     const handleRefillWithDiamonds = async () => {
         if (diamonds >= ENERGY_REFILL_COST) {
             dispatch(refillEnergyWithDiamonds());
-            // Save to storage
             const newState = {
                 energy: MAX_ENERGY,
                 diamonds: diamonds - ENERGY_REFILL_COST,
@@ -63,6 +62,9 @@ export default function EnergyModal({ visible, onClose, onWatchAd }: EnergyModal
     };
 
     const canRefill = diamonds >= ENERGY_REFILL_COST && energy < MAX_ENERGY;
+    const modalWidth = getModalMaxWidth();
+    const iconSize = isTablet ? 56 : 48;
+    const energyBarWidth = isTablet ? 50 : 40;
 
     return (
         <Modal
@@ -72,72 +74,77 @@ export default function EnergyModal({ visible, onClose, onWatchAd }: EnergyModal
             onRequestClose={onClose}
         >
             <View style={styles.overlay}>
-                <View style={styles.container}>
+                <View style={[styles.container, { width: modalWidth, maxWidth: 500 }]}>
                     <TouchableOpacity style={styles.closeButton} onPress={onClose}>
                         <X size={24} color="#666" />
                     </TouchableOpacity>
 
-                    <View style={styles.iconContainer}>
-                        <Zap size={48} color="#F6AD55" fill="#F6AD55" />
-                    </View>
-
-                    <Text style={styles.title}>Enerji</Text>
-
-                    <View style={styles.energyDisplay}>
-                        {Array.from({ length: MAX_ENERGY }).map((_, i) => (
-                            <View
-                                key={i}
-                                style={[
-                                    styles.energyBar,
-                                    i < energy ? styles.energyBarFull : styles.energyBarEmpty,
-                                ]}
-                            />
-                        ))}
-                    </View>
-
-                    <Text style={styles.energyText}>{energy} / {MAX_ENERGY}</Text>
-
-                    {energy < MAX_ENERGY && (
-                        <View style={styles.timerContainer}>
-                            <Clock size={20} color="#718096" />
-                            <Text style={styles.timerText}>
-                                Sonraki enerji: {countdown}
-                            </Text>
+                    <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+                        <View style={[styles.iconContainer, isTablet && styles.iconContainerTablet]}>
+                            <Zap size={iconSize} color="#F6AD55" fill="#F6AD55" />
                         </View>
-                    )}
 
-                    {energy >= MAX_ENERGY && (
-                        <Text style={styles.fullText}>✨ Enerji Dolu!</Text>
-                    )}
+                        <Text style={[styles.title, isTablet && styles.titleTablet]}>Enerji</Text>
 
-                    <View style={styles.divider} />
+                        <View style={styles.energyDisplay}>
+                            {Array.from({ length: MAX_ENERGY }).map((_, i) => (
+                                <View
+                                    key={i}
+                                    style={[
+                                        styles.energyBar,
+                                        { width: energyBarWidth },
+                                        i < energy ? styles.energyBarFull : styles.energyBarEmpty,
+                                    ]}
+                                />
+                            ))}
+                        </View>
 
-                    <Text style={styles.infoText}>
-                        Her oyun 1 enerji harcar. Enerji 2 saatte bir otomatik yenilenir.
-                    </Text>
-
-                    <TouchableOpacity
-                        style={[styles.refillButton, !canRefill && styles.refillButtonDisabled]}
-                        onPress={handleRefillWithDiamonds}
-                        disabled={!canRefill}
-                    >
-                        <Diamond size={20} color="#FFF" fill="#FFF" />
-                        <Text style={styles.refillButtonText}>
-                            {ENERGY_REFILL_COST} 💎 ile Doldur
+                        <Text style={[styles.energyText, isTablet && styles.energyTextTablet]}>
+                            {energy} / {MAX_ENERGY}
                         </Text>
-                    </TouchableOpacity>
 
-                    <Text style={styles.diamondInfo}>
-                        Mevcut: {diamonds} 💎
-                    </Text>
+                        {energy < MAX_ENERGY && (
+                            <View style={styles.timerContainer}>
+                                <Clock size={20} color="#718096" />
+                                <Text style={styles.timerText}>
+                                    Sonraki enerji: {countdown}
+                                </Text>
+                            </View>
+                        )}
 
-                    {diamonds < ENERGY_REFILL_COST && energy < MAX_ENERGY && (
-                        <TouchableOpacity style={styles.watchAdButton} onPress={onWatchAd}>
-                            <Text style={styles.watchAdButtonText}>
-                                🎬 Reklam İzle ve Elmas Kazan
+                        {energy >= MAX_ENERGY && (
+                            <Text style={styles.fullText}>✨ Enerji Dolu!</Text>
+                        )}
+
+                        <View style={styles.divider} />
+
+                        <Text style={styles.infoText}>
+                            Her oyun 1 enerji harcar. Enerji 2 saatte bir otomatik yenilenir.
+                        </Text>
+
+                        <TouchableOpacity
+                            style={[styles.refillButton, !canRefill && styles.refillButtonDisabled]}
+                            onPress={handleRefillWithDiamonds}
+                            disabled={!canRefill}
+                        >
+                            <Diamond size={20} color="#FFF" fill="#FFF" />
+                            <Text style={styles.refillButtonText}>
+                                {ENERGY_REFILL_COST} 💎 ile Doldur
                             </Text>
                         </TouchableOpacity>
-                    )}
+
+                        <Text style={styles.diamondInfo}>
+                            Mevcut: {diamonds} 💎
+                        </Text>
+
+                        {diamonds < ENERGY_REFILL_COST && energy < MAX_ENERGY && (
+                            <TouchableOpacity style={styles.watchAdButton} onPress={onWatchAd}>
+                                <Text style={styles.watchAdButtonText}>
+                                    🎬 Reklam İzle ve Elmas Kazan
+                                </Text>
+                            </TouchableOpacity>
+                        )}
+                    </ScrollView>
                 </View>
             </View>
         </Modal>
@@ -152,10 +159,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     container: {
-        width: SCREEN_WIDTH - 48,
         backgroundColor: '#FFF',
         borderRadius: 24,
         padding: 24,
+        maxHeight: '85%',
+    },
+    scrollContent: {
         alignItems: 'center',
     },
     closeButton: {
@@ -163,6 +172,7 @@ const styles = StyleSheet.create({
         top: 16,
         right: 16,
         padding: 4,
+        zIndex: 10,
     },
     iconContainer: {
         width: 80,
@@ -173,11 +183,19 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: 16,
     },
+    iconContainerTablet: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+    },
     title: {
         fontSize: 24,
         fontWeight: '800',
         color: '#2D3748',
         marginBottom: 16,
+    },
+    titleTablet: {
+        fontSize: 28,
     },
     energyDisplay: {
         flexDirection: 'row',
@@ -185,7 +203,6 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     energyBar: {
-        width: 40,
         height: 16,
         borderRadius: 8,
     },
@@ -200,6 +217,9 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         color: '#2D3748',
         marginBottom: 16,
+    },
+    energyTextTablet: {
+        fontSize: 22,
     },
     timerContainer: {
         flexDirection: 'row',

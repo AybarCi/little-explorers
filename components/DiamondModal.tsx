@@ -5,8 +5,8 @@ import {
     Modal,
     StyleSheet,
     TouchableOpacity,
-    Dimensions,
     ActivityIndicator,
+    ScrollView,
 } from 'react-native';
 import { X, Diamond, Play } from 'lucide-react-native';
 import { useAppSelector } from '@/hooks/useAppSelector';
@@ -14,8 +14,7 @@ import { useAppDispatch } from '@/hooks/useAppDispatch';
 import { addDiamonds, CURRENCY_CONSTANTS, saveCurrencyToStorage } from '@/store/slices/currencySlice';
 import { loadRewardedAd, showRewardedAd, isRewardedAdReady } from '@/utils/ads';
 import { Colors } from '@/constants/colors';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+import { useResponsive } from '@/utils/responsive';
 
 interface DiamondModalProps {
     visible: boolean;
@@ -27,6 +26,7 @@ export default function DiamondModal({ visible, onClose }: DiamondModalProps) {
     const { diamonds, energy, lastEnergyUpdate } = useAppSelector((state) => state.currency);
     const [isLoading, setIsLoading] = useState(false);
     const [message, setMessage] = useState('');
+    const { getModalMaxWidth, isTablet } = useResponsive();
 
     const { AD_REWARD_DIAMONDS } = CURRENCY_CONSTANTS;
 
@@ -35,17 +35,13 @@ export default function DiamondModal({ visible, onClose }: DiamondModalProps) {
         setMessage('');
 
         try {
-            // Load ad if not ready
             if (!isRewardedAdReady()) {
                 await loadRewardedAd();
             }
 
-            // Show the ad
             showRewardedAd(
-                // On reward earned
                 async () => {
                     dispatch(addDiamonds(AD_REWARD_DIAMONDS));
-                    // Save to storage
                     const newState = {
                         energy,
                         diamonds: diamonds + AD_REWARD_DIAMONDS,
@@ -55,11 +51,9 @@ export default function DiamondModal({ visible, onClose }: DiamondModalProps) {
                     setMessage(`🎉 ${AD_REWARD_DIAMONDS} elmas kazandın!`);
                     setIsLoading(false);
                 },
-                // On ad closed
                 () => {
                     setIsLoading(false);
                 },
-                // On error
                 (error) => {
                     console.error('Ad error:', error);
                     setMessage('Reklam yüklenemedi. Tekrar dene.');
@@ -73,6 +67,9 @@ export default function DiamondModal({ visible, onClose }: DiamondModalProps) {
         }
     };
 
+    const modalWidth = getModalMaxWidth();
+    const iconSize = isTablet ? 56 : 48;
+
     return (
         <Modal
             visible={visible}
@@ -81,60 +78,64 @@ export default function DiamondModal({ visible, onClose }: DiamondModalProps) {
             onRequestClose={onClose}
         >
             <View style={styles.overlay}>
-                <View style={styles.container}>
+                <View style={[styles.container, { width: modalWidth, maxWidth: 500 }]}>
                     <TouchableOpacity style={styles.closeButton} onPress={onClose}>
                         <X size={24} color="#666" />
                     </TouchableOpacity>
 
-                    <View style={styles.iconContainer}>
-                        <Diamond size={48} color="#60A5FA" fill="#60A5FA" />
-                    </View>
+                    <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+                        <View style={[styles.iconContainer, isTablet && styles.iconContainerTablet]}>
+                            <Diamond size={iconSize} color="#60A5FA" fill="#60A5FA" />
+                        </View>
 
-                    <Text style={styles.title}>Elmas</Text>
+                        <Text style={[styles.title, isTablet && styles.titleTablet]}>Elmas</Text>
 
-                    <View style={styles.diamondDisplay}>
-                        <Diamond size={32} color="#60A5FA" fill="#60A5FA" />
-                        <Text style={styles.diamondCount}>{diamonds}</Text>
-                    </View>
+                        <View style={styles.diamondDisplay}>
+                            <Diamond size={isTablet ? 40 : 32} color="#60A5FA" fill="#60A5FA" />
+                            <Text style={[styles.diamondCount, isTablet && styles.diamondCountTablet]}>
+                                {diamonds}
+                            </Text>
+                        </View>
 
-                    <View style={styles.divider} />
+                        <View style={styles.divider} />
 
-                    <Text style={styles.infoText}>
-                        Elmaslar ile enerjini doldurabilirsin! Reklam izleyerek elmas kazanabilirsin.
-                    </Text>
-
-                    <View style={styles.rewardInfo}>
-                        <Play size={20} color="#48BB78" />
-                        <Text style={styles.rewardText}>
-                            Her reklam = {AD_REWARD_DIAMONDS} 💎
+                        <Text style={styles.infoText}>
+                            Elmaslar ile enerjini doldurabilirsin! Reklam izleyerek elmas kazanabilirsin.
                         </Text>
-                    </View>
 
-                    <TouchableOpacity
-                        style={[styles.watchAdButton, isLoading && styles.watchAdButtonDisabled]}
-                        onPress={handleWatchAd}
-                        disabled={isLoading}
-                    >
-                        {isLoading ? (
-                            <ActivityIndicator color="#FFF" />
-                        ) : (
-                            <>
-                                <Play size={24} color="#FFF" fill="#FFF" />
-                                <Text style={styles.watchAdButtonText}>
-                                    Reklam İzle
-                                </Text>
-                            </>
+                        <View style={styles.rewardInfo}>
+                            <Play size={20} color="#48BB78" />
+                            <Text style={styles.rewardText}>
+                                Her reklam = {AD_REWARD_DIAMONDS} 💎
+                            </Text>
+                        </View>
+
+                        <TouchableOpacity
+                            style={[styles.watchAdButton, isLoading && styles.watchAdButtonDisabled]}
+                            onPress={handleWatchAd}
+                            disabled={isLoading}
+                        >
+                            {isLoading ? (
+                                <ActivityIndicator color="#FFF" />
+                            ) : (
+                                <>
+                                    <Play size={24} color="#FFF" fill="#FFF" />
+                                    <Text style={styles.watchAdButtonText}>
+                                        Reklam İzle
+                                    </Text>
+                                </>
+                            )}
+                        </TouchableOpacity>
+
+                        {message !== '' && (
+                            <Text style={styles.messageText}>{message}</Text>
                         )}
-                    </TouchableOpacity>
 
-                    {message !== '' && (
-                        <Text style={styles.messageText}>{message}</Text>
-                    )}
-
-                    <View style={styles.usageInfo}>
-                        <Text style={styles.usageTitle}>Elmas Kullanımı:</Text>
-                        <Text style={styles.usageItem}>• 50 💎 = Tam enerji dolumu</Text>
-                    </View>
+                        <View style={styles.usageInfo}>
+                            <Text style={styles.usageTitle}>Elmas Kullanımı:</Text>
+                            <Text style={styles.usageItem}>• 50 💎 = Tam enerji dolumu</Text>
+                        </View>
+                    </ScrollView>
                 </View>
             </View>
         </Modal>
@@ -149,10 +150,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     container: {
-        width: SCREEN_WIDTH - 48,
         backgroundColor: '#FFF',
         borderRadius: 24,
         padding: 24,
+        maxHeight: '85%',
+    },
+    scrollContent: {
         alignItems: 'center',
     },
     closeButton: {
@@ -160,6 +163,7 @@ const styles = StyleSheet.create({
         top: 16,
         right: 16,
         padding: 4,
+        zIndex: 10,
     },
     iconContainer: {
         width: 80,
@@ -170,11 +174,19 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: 16,
     },
+    iconContainerTablet: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+    },
     title: {
         fontSize: 24,
         fontWeight: '800',
         color: '#2D3748',
         marginBottom: 16,
+    },
+    titleTablet: {
+        fontSize: 28,
     },
     diamondDisplay: {
         flexDirection: 'row',
@@ -186,6 +198,9 @@ const styles = StyleSheet.create({
         fontSize: 36,
         fontWeight: '800',
         color: '#2D3748',
+    },
+    diamondCountTablet: {
+        fontSize: 44,
     },
     divider: {
         width: '100%',
