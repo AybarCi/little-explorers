@@ -113,7 +113,7 @@ function App() {
         <Navbar />
         <main style={{
           flex: 1,
-          paddingTop: '80px' // Account for fixed navbar
+          // Remove fixed padding, let each page handle navbar offset
         }}>
           <Routes>
             <Route path="/" element={<Home />} />

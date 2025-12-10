@@ -29,9 +29,7 @@ export default function Navbar() {
       <nav style={{
         ...styles.nav,
         ...(isScrolled ? styles.navScrolled : {}),
-        background: `linear-gradient(45deg, ${Colors.skyBlue}, ${Colors.magicPink}, ${Colors.sunshineYellow})`,
-        backgroundSize: '200% 200%',
-        animation: 'gradientShift 6s ease infinite'
+        background: `linear-gradient(45deg, ${Colors.spacePurple}, ${Colors.darkPurple})`,
       }}>
         <div style={styles.container}>
           <Link 
@@ -47,12 +45,9 @@ export default function Navbar() {
             <img src={logo} alt="Küçük Kaşif Logo" style={styles.logoImage} />
             <span style={{
               ...styles.logoText,
-              background: `linear-gradient(45deg, ${Colors.rainbowRed}, ${Colors.sunshineYellow}, ${Colors.skyBlue})`,
-              backgroundSize: '200% 200%',
-              animation: 'gradientShift 3s ease infinite',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              fontWeight: '900'
+              color: Colors.pureWhite,
+              fontWeight: '900',
+              textShadow: '2px 2px 4px rgba(0,0,0,0.3)'
             }}>🌟 Küçük Kaşif 🌟</span>
           </Link>
           
@@ -135,7 +130,7 @@ const styles: Record<string, React.CSSProperties> = {
     WebkitBackdropFilter: 'blur(20px)',
     borderBottom: '1px solid rgba(65, 49, 122, 0.1)',
     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-    padding: '1.5rem 0',
+    padding: '0.5rem 0',
   },
   navScrolled: {
     backgroundColor: 'rgba(255, 255, 255, 0.98)',
@@ -158,17 +153,18 @@ const styles: Record<string, React.CSSProperties> = {
     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   },
   logoImage: {
-    width: '80px',
-    height: '80px',
+    width: '55px',
+    height: '55px',
     objectFit: 'contain',
     filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))',
     transition: 'transform 0.3s ease',
   },
   logoText: {
-    color: Colors.spacePurple,
+    color: Colors.pureWhite,
     fontSize: '1.5rem',
-    fontWeight: '700',
+    fontWeight: '800',
     letterSpacing: '-0.01em',
+    textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
   },
   desktopLinks: {
     display: 'flex',
@@ -248,12 +244,6 @@ const styles: Record<string, React.CSSProperties> = {
 // Add responsive styles and hover effects
 const styleSheet = document.createElement('style');
 styleSheet.textContent = `
-  @keyframes gradientShift {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-  }
-  
   @keyframes bounce {
     0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
     40% { transform: translateY(-10px); }
@@ -267,7 +257,7 @@ styleSheet.textContent = `
     left: 0;
     width: 0;
     height: 2px;
-    background: linear-gradient(45deg, ${Colors.rainbowRed}, ${Colors.sunshineYellow});
+    background: ${Colors.pureWhite};
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   

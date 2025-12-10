@@ -345,13 +345,14 @@ const styles: Record<string, React.CSSProperties> = {
   hero: {
     background: `linear-gradient(135deg, ${Colors.navyBlue} 0%, ${Colors.deepBlue} 30%, ${Colors.spacePurple} 70%, ${Colors.darkPurple} 100%)`,
     color: Colors.pureWhite,
-    padding: '6rem 2rem 4rem',
+    padding: '4rem 2rem 4rem',
     textAlign: 'center',
     position: 'relative',
     minHeight: '90vh',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: '-20px', // Remove white gap
   },
   heroContent: {
     maxWidth: '900px',

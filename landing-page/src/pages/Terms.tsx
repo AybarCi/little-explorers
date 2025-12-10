@@ -763,7 +763,7 @@ const styles: Record<string, React.CSSProperties> = {
   hero: {
     background: `linear-gradient(135deg, ${Colors.spacePurple} 0%, ${Colors.deepBlue} 40%, ${Colors.navyBlue} 70%, ${Colors.darkPurple} 100%)`,
     color: Colors.pureWhite,
-    padding: '8rem 2rem 6rem',
+    padding: '6rem 2rem 6rem',
     textAlign: 'center',
     position: 'relative',
   },
