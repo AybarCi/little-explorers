@@ -420,6 +420,11 @@ const authSlice = createSlice({
     clearError: (state) => {
       state.error = null;
     },
+    updateUserPoints: (state, action: PayloadAction<number>) => {
+      if (state.user) {
+        state.user.total_points = action.payload;
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -497,5 +502,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { clearError } = authSlice.actions;
+export const { clearError, updateUserPoints } = authSlice.actions;
 export default authSlice.reducer;
