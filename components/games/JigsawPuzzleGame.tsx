@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Dimensions, TouchableOpacity, Image } from 'react-native';
+import React, { useState, useMemo } from 'react';
+import { View, Text, StyleSheet, Dimensions, TouchableOpacity, Image, ImageSourcePropType } from 'react-native';
 import { PanResponder, Animated } from 'react-native';
 import { Colors } from '@/constants/colors';
 
@@ -7,6 +7,16 @@ const SCREEN_WIDTH = Dimensions.get('window').width;
 const BOARD_PADDING = 20;
 const GRID_SIZE = 4; // 4x4 grid for MVP
 const SNAP_THRESHOLD = 30;
+
+// Puzzle images array - randomly select one each game
+const PUZZLE_IMAGES = [
+    require('@/assets/images/kedi.png'),
+    require('@/assets/images/kuzu.png'),
+    require('@/assets/images/panda.png'),
+    require('@/assets/images/tavus-kusu.png'),
+    require('@/assets/images/tilki.png'),
+    require('@/assets/images/zebra.png'),
+];
 
 interface JigsawPuzzleGameProps {
     onComplete: (score: number) => void;
@@ -27,6 +37,12 @@ interface PuzzlePiece {
 export default function JigsawPuzzleGame({ onComplete, ageGroup }: JigsawPuzzleGameProps) {
     const boardSize = SCREEN_WIDTH - (BOARD_PADDING * 2);
     const pieceSize = boardSize / GRID_SIZE;
+
+    // Randomly select a puzzle image once when component mounts
+    const puzzleImage = useMemo(() => {
+        const randomIndex = Math.floor(Math.random() * PUZZLE_IMAGES.length);
+        return PUZZLE_IMAGES[randomIndex];
+    }, []);
 
     const [pieces, setPieces] = useState<PuzzlePiece[]>(() => {
         const initialPieces: PuzzlePiece[] = [];
@@ -162,6 +178,7 @@ export default function JigsawPuzzleGame({ onComplete, ageGroup }: JigsawPuzzleG
                         piece={piece}
                         pieceSize={pieceSize}
                         onSnapCheck={handlePieceMove}
+                        puzzleImage={puzzleImage}
                     />
                 ))}
             </View>
@@ -204,9 +221,10 @@ interface DraggablePieceProps {
     piece: PuzzlePiece;
     pieceSize: number;
     onSnapCheck: (piece: PuzzlePiece, x: number, y: number) => void;
+    puzzleImage: ImageSourcePropType;
 }
 
-function DraggablePiece({ piece, pieceSize, onSnapCheck }: DraggablePieceProps) {
+function DraggablePiece({ piece, pieceSize, onSnapCheck, puzzleImage }: DraggablePieceProps) {
     const pan = React.useRef(new Animated.ValueXY({ x: piece.currentX, y: piece.currentY })).current;
     const [zIndex, setZIndex] = React.useState(1);
 
@@ -239,8 +257,7 @@ function DraggablePiece({ piece, pieceSize, onSnapCheck }: DraggablePieceProps) 
         }), [piece.isLocked, piece.id]
     );
 
-    // Use actual image with cropping
-    const PUZZLE_IMAGE = require('@/assets/images/logo.png');
+    // Use the puzzle image passed as prop
     const imageOffset = {
         x: -piece.col * pieceSize,
         y: -piece.row * pieceSize,
@@ -260,7 +277,7 @@ function DraggablePiece({ piece, pieceSize, onSnapCheck }: DraggablePieceProps) 
             ]}
         >
             <Image
-                source={PUZZLE_IMAGE}
+                source={puzzleImage}
                 style={{
                     width: pieceSize * 4, // Full image size (4x4 grid)
                     height: pieceSize * 4,
