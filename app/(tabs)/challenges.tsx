@@ -22,6 +22,7 @@ import { Colors } from '@/constants/colors';
 import Constants from 'expo-constants';
 
 const SUPABASE_URL = Constants.expoConfig?.extra?.supabaseUrl;
+const SUPABASE_ANON_KEY = Constants.expoConfig?.extra?.supabaseAnonKey;
 
 interface Challenge {
   id: string;
@@ -98,7 +99,13 @@ export default function ChallengesScreen() {
 
     try {
       const response = await fetch(
-        `${SUPABASE_URL}/functions/v1/get-challenge-data?user_id=${user.id}`
+        `${SUPABASE_URL}/functions/v1/get-challenge-data?user_id=${user.id}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'apikey': SUPABASE_ANON_KEY || '',
+          },
+        }
       );
       const data = await response.json() as ChallengeDataResponse;
 
@@ -254,7 +261,11 @@ export default function ChallengesScreen() {
 
       const response = await fetch(`${SUPABASE_URL}/functions/v1/claim-challenge`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'apikey': SUPABASE_ANON_KEY || '',
+        },
         body: JSON.stringify({
           user_id: user.id,
           challenge_id: challenge.id,
@@ -265,6 +276,9 @@ export default function ChallengesScreen() {
       });
 
       const data = await response.json() as ClaimResponse;
+
+      console.log('Claim response status:', response.status);
+      console.log('Claim response data:', data);
 
       if (data.success) {
         // Update local state
@@ -282,6 +296,7 @@ export default function ChallengesScreen() {
       } else if (data.already_claimed) {
         Alert.alert('Bilgi', 'Bu ödülü zaten aldın!');
       } else {
+        console.error('Claim failed:', data);
         Alert.alert('Hata', data.error || 'Ödül alınamadı');
       }
     } catch (error) {
