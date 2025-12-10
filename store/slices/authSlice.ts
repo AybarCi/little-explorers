@@ -229,6 +229,37 @@ export const updateUserStats = createAsyncThunk(
   }
 );
 
+// Async thunk to SET total points to a specific value (used for challenge rewards)
+export const setUserTotalPoints = createAsyncThunk(
+  'auth/setUserTotalPoints',
+  async (
+    newTotalPoints: number,
+    { getState, rejectWithValue }
+  ) => {
+    try {
+      const state = getState() as { auth: AuthState };
+      const { user } = state.auth;
+
+      if (!user) {
+        return rejectWithValue('No user logged in');
+      }
+
+      // Update user with new total points
+      const updatedUser = {
+        ...user,
+        total_points: newTotalPoints,
+      };
+
+      // Persist to SecureStore
+      await SecureStore.setItemAsync('auth_user', JSON.stringify(updatedUser));
+
+      return updatedUser;
+    } catch (error) {
+      return rejectWithValue(error instanceof Error ? error.message : 'Failed to set user total points');
+    }
+  }
+);
+
 export const signup = createAsyncThunk(
   'auth/signup',
   async (
@@ -502,6 +533,9 @@ const authSlice = createSlice({
         state.user = null;
       })
       .addCase(updateUserStats.fulfilled, (state, action) => {
+        state.user = action.payload;
+      })
+      .addCase(setUserTotalPoints.fulfilled, (state, action) => {
         state.user = action.payload;
       });
   },

@@ -16,7 +16,7 @@ import { Zap, Target, Award, TrendingUp, CheckCircle, Circle, Gift } from 'lucid
 import { useAppSelector } from '@/hooks/useAppSelector';
 import { useAppDispatch } from '@/hooks/useAppDispatch';
 import { fetchGames } from '@/store/slices/gamesSlice';
-import { updateUserPoints } from '@/store/slices/authSlice';
+import { setUserTotalPoints } from '@/store/slices/authSlice';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/constants/colors';
 import Constants from 'expo-constants';
@@ -287,9 +287,9 @@ export default function ChallengesScreen() {
           [challenge.type]: [...prev[challenge.type], challenge.id],
         }));
 
-        // Update user points in Redux
+        // Update user points in Redux and SecureStore
         if (data.new_total_points !== undefined) {
-          dispatch(updateUserPoints(data.new_total_points));
+          dispatch(setUserTotalPoints(data.new_total_points));
         }
 
         Alert.alert('🎉 Tebrikler!', `+${challenge.reward} puan kazandın!`);
