@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import { View } from 'react-native';
-import { Home, BookOpen, User } from 'lucide-react-native';
+import { Home, BookOpen, User, Trophy } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/constants/colors';
 
@@ -88,6 +88,25 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="leaderboard"
+        options={{
+          title: 'Liderler',
+          tabBarIcon: ({ color, focused }) => (
+            <View style={{
+              backgroundColor: focused ? 'rgba(255,255,255,0.2)' : 'transparent',
+              padding: 8,
+              borderRadius: 16,
+              width: 48,
+              height: 48,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              <Trophy size={24} color={color} strokeWidth={focused ? 3 : 2} />
+            </View>
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="profile"
         options={{
           title: 'Profil',
@@ -121,3 +140,4 @@ export default function TabLayout() {
     </Tabs>
   );
 }
+
