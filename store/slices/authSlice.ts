@@ -180,7 +180,8 @@ export const restoreSession = createAsyncThunk(
             await SecureStore.deleteItemAsync('auth_session');
             await SecureStore.deleteItemAsync('auth_user');
             await SecureStore.deleteItemAsync('auth_session_metadata');
-            return { session: null, user: null, error: 'Oturumunuz çok uzun süre aktif olmadı. Lütfen tekrar giriş yapın.' };
+            // Silently return null - user will be redirected to login
+            return { session: null, user: null, error: undefined };
           }
         } else {
           // No metadata found, create it
@@ -190,7 +191,8 @@ export const restoreSession = createAsyncThunk(
         return { session, user, error: undefined };
       }
 
-      return { session: null, user: null, error: 'Oturum bilgileri bulunamadı.' };
+      // No session found - silently return null (user will be redirected to login)
+      return { session: null, user: null, error: undefined };
     } catch (error) {
       console.error('Failed to restore session:', error);
       return rejectWithValue('Failed to restore session');
