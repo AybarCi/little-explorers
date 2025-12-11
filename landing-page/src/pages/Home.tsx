@@ -1,3 +1,4 @@
+// v1.0.1 - Landing Page
 import { Link } from 'react-router-dom';
 import AnimatedSection from '../components/AnimatedSection';
 import FeatureCard from '../components/FeatureCard';
