@@ -132,7 +132,6 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '0.5rem 0',
   },
   navScrolled: {
-    backgroundColor: 'rgba(255, 255, 255, 0.98)',
     boxShadow: '0 2px 12px rgba(0,0,0,0.1)',
     padding: '1rem 0',
   },
