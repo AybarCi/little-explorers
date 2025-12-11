@@ -9,6 +9,7 @@ import {
   Platform,
   ScrollView,
   Modal,
+  Linking,
 } from 'react-native';
 import { Link } from 'expo-router';
 import { Eye, EyeOff, LogIn, AlertTriangle } from 'lucide-react-native';
@@ -152,6 +153,16 @@ export default function SignInScreen() {
               <Text style={styles.link}>Kaydol</Text>
             </TouchableOpacity>
           </Link>
+        </View>
+
+        <View style={styles.legalLinks}>
+          <TouchableOpacity onPress={() => Linking.openURL('https://kucuk-kasif.com/privacy')}>
+            <Text style={styles.legalLinkText}>Gizlilik Politikası</Text>
+          </TouchableOpacity>
+          <Text style={styles.legalSeparator}>•</Text>
+          <TouchableOpacity onPress={() => Linking.openURL('https://kucuk-kasif.com/terms')}>
+            <Text style={styles.legalLinkText}>Kullanım Şartları</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -316,5 +327,21 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: Colors.brightYellow,
     fontWeight: '700',
+  },
+  legalLinks: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 24,
+    gap: 8,
+  },
+  legalLinkText: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.6)',
+    textDecorationLine: 'underline',
+  },
+  legalSeparator: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.4)',
   },
 });
