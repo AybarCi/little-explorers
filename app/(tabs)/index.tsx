@@ -124,7 +124,7 @@ export default function HomeScreen() {
   );
 
   const completedGames = user?.completed_games_count || 0;
-  const totalScore = user?.total_points || 0;
+  const totalPoints = user?.total_points || 0;  // Toplam puan (oyun tamamlama + görev ödülleri)
 
   const quickActions = [
     {
@@ -234,7 +234,7 @@ export default function HomeScreen() {
           <View style={styles.statIcon}>
             <Trophy size={24} color="#48BB78" />
           </View>
-          <Text style={styles.statValue}>{totalScore}</Text>
+          <Text style={styles.statValue}>{totalPoints}</Text>
           <Text style={styles.statLabel}>Toplam Puan</Text>
         </View>
 

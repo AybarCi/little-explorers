@@ -138,14 +138,14 @@ Deno.serve(async (req: Request) => {
             categories[category].time += progress.time_spent || 0;
         });
 
-        // Use calculated values instead of users table values to ensure consistency
+        // Calculate total score from game_progress (this is SCORE, not POINTS)
+        // totalScore = sum of all game scores (performance-based)
+        // total_points in users table = game completion points + challenge rewards (separate concept)
         const totalScore = calculatedTotalScore;
         const completedGames = calculatedCompletedGames;
         const totalGamesInApp = gamesData?.length || 0;
 
-        // Average score is based on the actual game scores (performance), not the base points
-        // Wait, if we want "Average Score" to reflect performance, we should average the 'score' field from game_progress
-        // Let's calculate average performance score
+        // Average score is based on the actual game scores (performance)
         let totalPerformanceScore = 0;
         progressData?.forEach((p: any) => {
             totalPerformanceScore += p.score || 0;
@@ -153,23 +153,13 @@ Deno.serve(async (req: Request) => {
 
         const averageScore = completedGames > 0 ? Math.round(totalPerformanceScore / completedGames) : 0;
 
-        // Sync fixed values back to users table if they differ (self-healing)
-        if (userData && (userData.total_points !== totalScore || userData.completed_games_count !== completedGames)) {
-            console.log('Fixing user stats mismatch:', {
-                old: { points: userData.total_points, count: userData.completed_games_count },
-                new: { points: totalScore, count: completedGames }
-            });
-
-            supabase.from("users").update({
-                total_points: totalScore,
-                completed_games_count: completedGames
-            }).eq("id", userId).then(({ error }) => {
-                if (error) console.error('Failed to auto-fix user stats:', error);
-            });
-        }
+        // NOTE: We no longer sync totalScore to users.total_points because:
+        // - users.total_points = points earned from completing games + challenge rewards
+        // - totalScore = sum of game scores (performance-based, calculated dynamically)
+        // These are two different concepts and should NOT be equal!
 
         console.log('Final stats:', {
-            totalScore,
+            totalScore,          // Sum of game_progress.score (performance)
             completedGames,
             totalTime: totalTimeFromProgress,
             averageScore,

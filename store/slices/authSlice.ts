@@ -260,6 +260,45 @@ export const setUserTotalPoints = createAsyncThunk(
   }
 );
 
+// Delete user account and all data
+export const deleteAccount = createAsyncThunk(
+  'auth/deleteAccount',
+  async (_, { getState, rejectWithValue }) => {
+    try {
+      const state = getState() as { auth: AuthState };
+      const { user } = state.auth;
+
+      if (!user) {
+        return rejectWithValue('No user logged in');
+      }
+
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/delete-account`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({ user_id: user.id }),
+      });
+
+      const data = await response.json() as { success?: boolean; error?: string };
+
+      if (!response.ok || !data.success) {
+        return rejectWithValue(data.error || 'Failed to delete account');
+      }
+
+      // Clear all local storage
+      await SecureStore.deleteItemAsync('auth_session');
+      await SecureStore.deleteItemAsync('auth_user');
+      await SecureStore.deleteItemAsync('auth_session_metadata');
+
+      return { success: true };
+    } catch (error) {
+      return rejectWithValue(error instanceof Error ? error.message : 'Failed to delete account');
+    }
+  }
+);
+
 export const signup = createAsyncThunk(
   'auth/signup',
   async (
@@ -537,6 +576,11 @@ const authSlice = createSlice({
       })
       .addCase(setUserTotalPoints.fulfilled, (state, action) => {
         state.user = action.payload;
+      })
+      .addCase(deleteAccount.fulfilled, (state) => {
+        state.user = null;
+        state.session = null;
+        state.error = null;
       });
   },
 });

@@ -2,10 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
-import { LogOut, Mail, Calendar, Trophy, Zap, Diamond, Settings } from 'lucide-react-native';
+import { Mail, Calendar, Trophy, Zap, Diamond, Settings } from 'lucide-react-native';
 import { useAppDispatch } from '@/hooks/useAppDispatch';
 import { useAppSelector } from '@/hooks/useAppSelector';
-import { signout } from '@/store/slices/authSlice';
 import { CURRENCY_CONSTANTS } from '@/store/slices/currencySlice';
 import { Colors } from '@/constants/colors';
 import Constants from 'expo-constants';
@@ -118,9 +117,7 @@ export default function ProfileScreen() {
     completed_games_count: user?.completed_games_count || 0,
   };
 
-  const handleSignOut = () => {
-    dispatch(signout());
-  };
+
 
   const renderAvatar = () => {
     const frameColor = appearance.frame_color || '#4299E1';
@@ -173,14 +170,24 @@ export default function ProfileScreen() {
           <Text style={styles.ageGroupText}>{user?.age_group} Yaş</Text>
         </View>
 
-        {/* Avatar Settings Button */}
-        <TouchableOpacity
-          style={styles.avatarSettingsButton}
-          onPress={() => router.push('/avatar-settings')}
-        >
-          <Settings size={18} color="#FFF" />
-          <Text style={styles.avatarSettingsText}>Avatar Ayarları</Text>
-        </TouchableOpacity>
+        {/* Settings Buttons */}
+        <View style={styles.settingsRow}>
+          <TouchableOpacity
+            style={styles.settingsButton}
+            onPress={() => router.push('/avatar-settings')}
+          >
+            <Settings size={18} color="#FFF" />
+            <Text style={styles.settingsButtonText}>Avatar Ayarları</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.settingsButton}
+            onPress={() => router.push('/account-settings')}
+          >
+            <Settings size={18} color="#FFF" />
+            <Text style={styles.settingsButtonText}>Hesap Ayarları</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.section}>
@@ -242,12 +249,7 @@ export default function ProfileScreen() {
         </View>
       </View>
 
-      <View style={styles.section}>
-        <TouchableOpacity style={styles.logoutButton} onPress={handleSignOut}>
-          <LogOut size={20} color="white" />
-          <Text style={styles.logoutButtonText}>Çıkış Yap</Text>
-        </TouchableOpacity>
-      </View>
+
     </ScrollView>
   );
 }
@@ -329,18 +331,25 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#4299E1',
   },
-  avatarSettingsButton: {
+  settingsRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 16,
+  },
+  settingsButton: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 8,
     backgroundColor: Colors.primary,
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 12,
   },
-  avatarSettingsText: {
+  settingsButtonText: {
     color: '#FFF',
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
   },
   section: {
