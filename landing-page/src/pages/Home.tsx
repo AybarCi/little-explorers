@@ -4,14 +4,31 @@ import FeatureCard from '../components/FeatureCard';
 import ScreenshotCarousel from '../components/ScreenshotCarousel';
 import './Home.css';
 
+// Import app screenshots
+import screenshot1 from '../assets/IMG_3411.PNG';
+import screenshot2 from '../assets/IMG_3412.PNG';
+import screenshot3 from '../assets/IMG_3413.PNG';
+import screenshot4 from '../assets/IMG_3414.PNG';
+import screenshot5 from '../assets/IMG_3420.PNG';
+import screenshot6 from '../assets/IMG_3421.PNG';
+import screenshot7 from '../assets/IMG_3423.PNG';
+import screenshot8 from '../assets/IMG_3424.PNG';
+
 export default function Home() {
-  // Placeholder screenshots - will be replaced with actual app screenshots
   const screenshots = [
-    { url: 'https://via.placeholder.com/390x844/41317A/FFFFFF?text=Anasayfa', alt: 'Küçük Kaşif Anasayfa' },
-    { url: 'https://via.placeholder.com/390x844/F57E37/FFFFFF?text=Oyunlar', alt: 'Küçük Kaşif Oyunlar' },
-    { url: 'https://via.placeholder.com/390x844/00D4FF/FFFFFF?text=Profil', alt: 'Küçük Kaşif Profil' },
-    { url: 'https://via.placeholder.com/390x844/48BB78/FFFFFF?text=Mağaza', alt: 'Küçük Kaşif Mağaza' },
+    { url: screenshot1, alt: 'Küçük Kaşif - Anasayfa' },
+    { url: screenshot2, alt: 'Küçük Kaşif - Oyunlar' },
+    { url: screenshot3, alt: 'Küçük Kaşif - Profil' },
+    { url: screenshot4, alt: 'Küçük Kaşif - İlerleme' },
+    { url: screenshot5, alt: 'Küçük Kaşif - Mağaza' },
+    { url: screenshot6, alt: 'Küçük Kaşif - Görevler' },
+    { url: screenshot7, alt: 'Küçük Kaşif - Matematik Oyunu' },
+    { url: screenshot8, alt: 'Küçük Kaşif - Hafıza Oyunu' },
   ];
+
+  // Debug: Log screenshot URLs to console
+  console.log('Screenshots loaded:', screenshots.map(s => ({ url: s.url, alt: s.alt })));
+
 
   return (
     <div className="home-page">

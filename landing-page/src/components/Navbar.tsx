@@ -29,11 +29,10 @@ export default function Navbar() {
       <nav style={{
         ...styles.nav,
         ...(isScrolled ? styles.navScrolled : {}),
-        background: `linear-gradient(45deg, ${Colors.spacePurple}, ${Colors.darkPurple})`,
       }}>
         <div style={styles.container}>
-          <Link 
-            to="/" 
+          <Link
+            to="/"
             style={styles.logo}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'scale(1.05)';
@@ -50,7 +49,7 @@ export default function Navbar() {
               textShadow: '2px 2px 4px rgba(0,0,0,0.3)'
             }}>🌟 Küçük Kaşif 🌟</span>
           </Link>
-          
+
           <div style={styles.desktopLinks}>
             {navItems.map((item) => (
               <Link
@@ -125,10 +124,10 @@ const styles: Record<string, React.CSSProperties> = {
     left: 0,
     right: 0,
     zIndex: 1000,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    background: `linear-gradient(45deg, ${Colors.spacePurple}, ${Colors.darkPurple})`,
     backdropFilter: 'blur(20px)',
     WebkitBackdropFilter: 'blur(20px)',
-    borderBottom: '1px solid rgba(65, 49, 122, 0.1)',
+    borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
     padding: '0.5rem 0',
   },
