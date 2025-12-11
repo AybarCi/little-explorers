@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
-import { Mail, Calendar, Trophy, Zap, Diamond, Settings } from 'lucide-react-native';
+import { Mail, Calendar, Trophy, Zap, Diamond, Settings, User } from 'lucide-react-native';
 import { useAppDispatch } from '@/hooks/useAppDispatch';
 import { useAppSelector } from '@/hooks/useAppSelector';
 import { CURRENCY_CONSTANTS } from '@/store/slices/currencySlice';
@@ -176,12 +176,12 @@ export default function ProfileScreen() {
             style={styles.settingsButton}
             onPress={() => router.push('/avatar-settings')}
           >
-            <Settings size={18} color="#FFF" />
+            <User size={18} color="#FFF" />
             <Text style={styles.settingsButtonText}>Avatar Ayarları</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.settingsButton}
+            style={[styles.settingsButton, styles.accountSettingsButton]}
             onPress={() => router.push('/account-settings')}
           >
             <Settings size={18} color="#FFF" />
@@ -351,6 +351,9 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 13,
     fontWeight: '600',
+  },
+  accountSettingsButton: {
+    backgroundColor: '#8B5CF6', // Soft purple
   },
   section: {
     paddingHorizontal: 24,

@@ -415,15 +415,6 @@ export default function ShopScreen() {
         );
     };
 
-    if (loading) {
-        return (
-            <View style={[styles.container, styles.loadingContainer]}>
-                <ActivityIndicator size="large" color={Colors.primary} />
-                <Text style={styles.loadingText}>Mağaza yükleniyor...</Text>
-            </View>
-        );
-    }
-
     return (
         <View style={styles.container}>
             <LinearGradient
@@ -476,45 +467,60 @@ export default function ShopScreen() {
                     <RefreshControl refreshing={refreshing} onRefresh={() => fetchShopData(true)} />
                 }
             >
-                {activeTab === 'avatars' && (
+                {loading ? (
+                    <View style={styles.listLoadingContainer}>
+                        <ActivityIndicator size="large" color={Colors.primary} />
+                        <Text style={styles.loadingText}>Öğeler yükleniyor...</Text>
+                    </View>
+                ) : (
                     <>
-                        <Text style={styles.sectionTitle}>😊 Emoji Avatarlar</Text>
-                        <View style={styles.itemsGrid}>
-                            {avatars.emoji.map(item => renderAvatarItem(item, false))}
-                        </View>
+                        {activeTab === 'avatars' && (
+                            <>
+                                <Text style={styles.sectionTitle}>😊 Emoji Avatarlar</Text>
+                                <View style={styles.itemsGrid}>
+                                    {avatars.emoji.map(item => renderAvatarItem(item, false))}
+                                </View>
 
-                        <Text style={styles.sectionTitle}>✨ Premium Avatarlar</Text>
-                        <View style={styles.itemsGrid}>
-                            {avatars.premium.map(item => renderAvatarItem(item, true))}
-                        </View>
-                    </>
-                )}
+                                <Text style={styles.sectionTitle}>✨ Premium Avatarlar</Text>
+                                <View style={styles.itemsGrid}>
+                                    {avatars.premium.map(item => renderAvatarItem(item, true))}
+                                </View>
+                            </>
+                        )}
 
-                {activeTab === 'frames' && (
-                    <>
-                        <Text style={styles.sectionTitle}>🖼️ Çerçeveler</Text>
-                        <View style={styles.itemsGrid}>
-                            {frames.map(renderFrameItem)}
-                        </View>
-                    </>
-                )}
+                        {activeTab === 'frames' && (
+                            <>
+                                <Text style={styles.sectionTitle}>🖼️ Çerçeveler</Text>
+                                <View style={styles.itemsGrid}>
+                                    {frames.map(renderFrameItem)}
+                                </View>
+                            </>
+                        )}
 
-                {activeTab === 'badges' && (
-                    <>
-                        <Text style={styles.sectionTitle}>🏅 Rozetler</Text>
-                        <View style={styles.itemsGrid}>
-                            {badges.map(renderBadgeItem)}
-                        </View>
+                        {activeTab === 'badges' && (
+                            <>
+                                <Text style={styles.sectionTitle}>🏅 Rozetler</Text>
+                                <View style={styles.itemsGrid}>
+                                    {badges.map(renderBadgeItem)}
+                                </View>
+                            </>
+                        )}
                     </>
                 )}
             </ScrollView>
-        </View>
+        </View >
     );
 }
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#F7FAFC' },
     loadingContainer: { justifyContent: 'center', alignItems: 'center' },
+    listLoadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingVertical: 100,
+    },
     loadingText: { marginTop: 12, fontSize: 16, color: '#718096' },
     headerGradient: {
         paddingHorizontal: 24, paddingTop: 55, paddingBottom: 20,
