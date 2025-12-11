@@ -1,540 +1,145 @@
-import { Colors } from '../constants/colors';
-import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import AnimatedSection from '../components/AnimatedSection';
+import './Download.css';
 
 export default function Download() {
-  const [visibleSections, setVisibleSections] = useState<Set<string>>(new Set());
-  const [scrollY, setScrollY] = useState(0);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrollY(window.scrollY);
-      
-      // Check which sections are visible
-      const sections = ['hero', 'download', 'steps', 'faq'];
-      const newVisibleSections = new Set<string>();
-      
-      sections.forEach(sectionId => {
-        const element = document.getElementById(sectionId);
-        if (element) {
-          const rect = element.getBoundingClientRect();
-          if (rect.top < window.innerHeight * 0.8) {
-            newVisibleSections.add(sectionId);
-          }
-        }
-      });
-      
-      setVisibleSections(newVisibleSections);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    handleScroll(); // Check initial state
-    
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // Add hover effect styles
-  useEffect(() => {
-    const styleSheet = document.createElement('style');
-    styleSheet.textContent = `
-      .download-card:hover {
-        transform: translateY(-8px) !important;
-        box-shadow: 0 16px 48px rgba(0,0,0,0.12) !important;
-      }
-      .download-button:hover {
-        transform: translateY(-2px) !important;
-        box-shadow: 0 8px 24px rgba(245, 126, 55, 0.4) !important;
-      }
-      .step-card:hover {
-        transform: translateY(-4px) !important;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.1) !important;
-      }
-      .faq-item:hover {
-        transform: translateY(-2px) !important;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.08) !important;
-      }
-    `;
-    document.head.appendChild(styleSheet);
-
-    return () => {
-      document.head.removeChild(styleSheet);
-    };
-  }, []);
-
   return (
-    <div style={styles.page}>
-      <section id="hero" style={{
-        ...styles.hero,
-        transform: `translateY(${scrollY * 0.5}px)`,
-        opacity: visibleSections.has('hero') ? 1 : 0,
-        transition: 'opacity 0.8s ease-out, transform 0.8s ease-out'
-      }}>
-        <div style={styles.container}>
-          <h1 style={{
-            ...styles.title,
-            transform: visibleSections.has('hero') ? 'translateY(0)' : 'translateY(30px)',
-            opacity: visibleSections.has('hero') ? 1 : 0,
-            transition: 'transform 0.8s ease-out 0.2s, opacity 0.8s ease-out 0.2s'
-          }}>Küçük Kaşifi'i İndir</h1>
-          <p style={{
-            ...styles.subtitle,
-            transform: visibleSections.has('hero') ? 'translateY(0)' : 'translateY(30px)',
-            opacity: visibleSections.has('hero') ? 1 : 0,
-            transition: 'transform 0.8s ease-out 0.4s, opacity 0.8s ease-out 0.4s'
-          }}>
-            iOS ve Android cihazlarınızda ücretsiz olarak kullanın
-          </p>
+    <div className="download-page">
+      {/* Hero Section */}
+      <section className="download-hero">
+        <AnimatedSection>
+          <div className="download-hero-content">
+            <span className="download-badge">📱 Ücretsiz İndir</span>
+            <h1 className="download-title">
+              Küçük Kaşif'i
+              <br />
+              <span className="gradient-text">Hemen İndirin!</span>
+            </h1>
+            <p className="download-subtitle">
+              iPhone, iPad ve Android cihazlarınızda eğlenceli ve
+              eğitici oyunlarla çocuğunuzun gelişimini destekleyin.
+            </p>
+          </div>
+        </AnimatedSection>
+      </section>
+
+      {/* Download Cards */}
+      <section className="download-cards-section">
+        <div className="download-cards">
+          <AnimatedSection delay={100}>
+            <div className="download-card">
+              <div className="store-icon apple-icon">
+                <svg viewBox="0 0 384 512" width="48" height="48" fill="currentColor">
+                  <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z" />
+                </svg>
+              </div>
+              <h3>App Store</h3>
+              <p>iPhone ve iPad için</p>
+              <a href="https://apps.apple.com" className="download-btn ios">
+                <span>App Store'dan İndir</span>
+              </a>
+              <span className="requirement">iOS 13.0+</span>
+            </div>
+          </AnimatedSection>
+
+          <AnimatedSection delay={200}>
+            <div className="download-card">
+              <div className="store-icon play-icon">
+                <svg viewBox="0 0 512 512" width="48" height="48" fill="currentColor">
+                  <path d="M325.3 234.3L104.6 13l280.8 161.2-60.1 60.1zM47 0C34 6.8 25.3 19.2 25.3 35.3v441.3c0 16.1 8.7 28.5 21.7 35.3l256.6-256L47 0zm425.2 225.6l-58.9-34.1-65.7 64.5 65.7 64.5 60.1-34.1c18-14.3 18-46.5-1.2-60.8zM104.6 499l280.8-161.2-60.1-60.1L104.6 499z" />
+                </svg>
+              </div>
+              <h3>Google Play</h3>
+              <p>Android cihazlar için</p>
+              <a href="https://play.google.com" className="download-btn android">
+                <span>Google Play'den İndir</span>
+              </a>
+              <span className="requirement">Android 8.0+</span>
+            </div>
+          </AnimatedSection>
         </div>
       </section>
 
-      <section id="download" style={styles.content}>
-        <div style={styles.container}>
-          <div style={styles.downloadGrid}>
-            <div className="download-card" style={{
-              ...styles.downloadCard,
-              transform: visibleSections.has('download') ? 'translateY(0)' : 'translateY(50px)',
-              opacity: visibleSections.has('download') ? 1 : 0,
-              transition: 'transform 0.8s ease-out 0.2s, opacity 0.8s ease-out 0.2s'
-            }}>
-              <div style={{
-                ...styles.icon,
-                transform: visibleSections.has('download') ? 'scale(1)' : 'scale(0.8)',
-                opacity: visibleSections.has('download') ? 1 : 0,
-                transition: 'transform 0.6s ease-out 0.4s, opacity 0.6s ease-out 0.4s'
-              }}>📱</div>
-              <h3 style={{
-                ...styles.cardTitle,
-                transform: visibleSections.has('download') ? 'translateY(0)' : 'translateY(20px)',
-                opacity: visibleSections.has('download') ? 1 : 0,
-                transition: 'transform 0.6s ease-out 0.5s, opacity 0.6s ease-out 0.5s'
-              }}>App Store</h3>
-              <p style={{
-                ...styles.cardText,
-                transform: visibleSections.has('download') ? 'translateY(0)' : 'translateY(20px)',
-                opacity: visibleSections.has('download') ? 1 : 0,
-                transition: 'transform 0.6s ease-out 0.6s, opacity 0.6s ease-out 0.6s'
-              }}>
-                iPhone ve iPad cihazlarınız için App Store'dan indirin
-              </p>
-              <button className="download-button" style={{
-                ...styles.downloadButton,
-                transform: visibleSections.has('download') ? 'translateY(0)' : 'translateY(20px)',
-                opacity: visibleSections.has('download') ? 1 : 0,
-                transition: 'transform 0.6s ease-out 0.7s, opacity 0.6s ease-out 0.7s'
-              }}>
-                App Store'dan İndir
-              </button>
-              <p style={styles.requirements}>iOS 13.0 ve üzeri gerektirir</p>
-            </div>
+      {/* Steps Section */}
+      <section className="steps-section">
+        <AnimatedSection>
+          <h2 className="section-title">Nasıl Başlarsınız?</h2>
+        </AnimatedSection>
 
-            <div className="download-card" style={{
-              ...styles.downloadCard,
-              transform: visibleSections.has('download') ? 'translateY(0)' : 'translateY(50px)',
-              opacity: visibleSections.has('download') ? 1 : 0,
-              transition: 'transform 0.8s ease-out 0.4s, opacity 0.8s ease-out 0.4s'
-            }}>
-              <div style={{
-                ...styles.icon,
-                transform: visibleSections.has('download') ? 'scale(1)' : 'scale(0.8)',
-                opacity: visibleSections.has('download') ? 1 : 0,
-                transition: 'transform 0.6s ease-out 0.5s, opacity 0.6s ease-out 0.5s'
-              }}>🤖</div>
-              <h3 style={{
-                ...styles.cardTitle,
-                transform: visibleSections.has('download') ? 'translateY(0)' : 'translateY(20px)',
-                opacity: visibleSections.has('download') ? 1 : 0,
-                transition: 'transform 0.6s ease-out 0.6s, opacity 0.6s ease-out 0.6s'
-              }}>Google Play</h3>
-              <p style={{
-                ...styles.cardText,
-                transform: visibleSections.has('download') ? 'translateY(0)' : 'translateY(20px)',
-                opacity: visibleSections.has('download') ? 1 : 0,
-                transition: 'transform 0.6s ease-out 0.7s, opacity 0.6s ease-out 0.7s'
-              }}>
-                Android cihazlarınız için Google Play'den indirin
-              </p>
-              <button className="download-button" style={{
-                ...styles.downloadButton,
-                transform: visibleSections.has('download') ? 'translateY(0)' : 'translateY(20px)',
-                opacity: visibleSections.has('download') ? 1 : 0,
-                transition: 'transform 0.6s ease-out 0.8s, opacity 0.6s ease-out 0.8s'
-              }}>
-                Google Play'den İndir
-              </button>
-              <p style={styles.requirements}>Android 8.0 ve üzeri gerektirir</p>
+        <div className="steps-grid">
+          <AnimatedSection delay={100}>
+            <div className="step-card">
+              <div className="step-number">1</div>
+              <h4>Uygulamayı İndirin</h4>
+              <p>App Store veya Google Play'den ücretsiz indirin</p>
             </div>
-          </div>
+          </AnimatedSection>
 
-          <div id="steps" style={styles.infoSection}>
-            <h2 style={{
-              ...styles.infoTitle,
-              transform: visibleSections.has('steps') ? 'translateY(0)' : 'translateY(30px)',
-              opacity: visibleSections.has('steps') ? 1 : 0,
-              transition: 'transform 0.8s ease-out, opacity 0.8s ease-out'
-            }}>Kurulum Sonrası</h2>
-            <div style={styles.stepGrid}>
-              <div className="step-card" style={{
-                ...styles.step,
-                transform: visibleSections.has('steps') ? 'translateY(0)' : 'translateY(40px)',
-                opacity: visibleSections.has('steps') ? 1 : 0,
-                transition: 'transform 0.8s ease-out 0.2s, opacity 0.8s ease-out 0.2s'
-              }}>
-                <div style={{
-                  ...styles.stepNumber,
-                  transform: visibleSections.has('steps') ? 'scale(1)' : 'scale(0.8)',
-                  opacity: visibleSections.has('steps') ? 1 : 0,
-                  transition: 'transform 0.6s ease-out 0.4s, opacity 0.6s ease-out 0.4s'
-                }}>1</div>
-                <h4 style={{
-                  ...styles.stepTitle,
-                  transform: visibleSections.has('steps') ? 'translateY(0)' : 'translateY(20px)',
-                  opacity: visibleSections.has('steps') ? 1 : 0,
-                  transition: 'transform 0.6s ease-out 0.5s, opacity 0.6s ease-out 0.5s'
-                }}>Hesap Oluşturun</h4>
-                <p style={{
-                  ...styles.stepText,
-                  transform: visibleSections.has('steps') ? 'translateY(0)' : 'translateY(20px)',
-                  opacity: visibleSections.has('steps') ? 1 : 0,
-                  transition: 'transform 0.6s ease-out 0.6s, opacity 0.6s ease-out 0.6s'
-                }}>
-                  Uygulamayı açın ve çocuğunuz için bir hesap oluşturun.
-                  Yaş grubunu seçerek oyunların zorluğunu belirleyin.
-                </p>
-              </div>
-              <div className="step-card" style={{
-                ...styles.step,
-                transform: visibleSections.has('steps') ? 'translateY(0)' : 'translateY(40px)',
-                opacity: visibleSections.has('steps') ? 1 : 0,
-                transition: 'transform 0.8s ease-out 0.4s, opacity 0.8s ease-out 0.4s'
-              }}>
-                <div style={{
-                  ...styles.stepNumber,
-                  transform: visibleSections.has('steps') ? 'scale(1)' : 'scale(0.8)',
-                  opacity: visibleSections.has('steps') ? 1 : 0,
-                  transition: 'transform 0.6s ease-out 0.5s, opacity 0.6s ease-out 0.5s'
-                }}>2</div>
-                <h4 style={{
-                  ...styles.stepTitle,
-                  transform: visibleSections.has('steps') ? 'translateY(0)' : 'translateY(20px)',
-                  opacity: visibleSections.has('steps') ? 1 : 0,
-                  transition: 'transform 0.6s ease-out 0.6s, opacity 0.6s ease-out 0.6s'
-                }}>Oyunları Keşfedin</h4>
-                <p style={{
-                  ...styles.stepText,
-                  transform: visibleSections.has('steps') ? 'translateY(0)' : 'translateY(20px)',
-                  opacity: visibleSections.has('steps') ? 1 : 0,
-                  transition: 'transform 0.6s ease-out 0.7s, opacity 0.6s ease-out 0.7s'
-                }}>
-                  Matematik, hafıza, dikkat ve problem çözme kategorilerinden
-                  uygun oyunları seçin.
-                </p>
-              </div>
-              <div className="step-card" style={{
-                ...styles.step,
-                transform: visibleSections.has('steps') ? 'translateY(0)' : 'translateY(40px)',
-                opacity: visibleSections.has('steps') ? 1 : 0,
-                transition: 'transform 0.8s ease-out 0.6s, opacity 0.8s ease-out 0.6s'
-              }}>
-                <div style={{
-                  ...styles.stepNumber,
-                  transform: visibleSections.has('steps') ? 'scale(1)' : 'scale(0.8)',
-                  opacity: visibleSections.has('steps') ? 1 : 0,
-                  transition: 'transform 0.6s ease-out 0.6s, opacity 0.6s ease-out 0.6s'
-                }}>3</div>
-                <h4 style={{
-                  ...styles.stepTitle,
-                  transform: visibleSections.has('steps') ? 'translateY(0)' : 'translateY(20px)',
-                  opacity: visibleSections.has('steps') ? 1 : 0,
-                  transition: 'transform 0.6s ease-out 0.7s, opacity 0.6s ease-out 0.7s'
-                }}>Başarıları Takip Edin</h4>
-                <p style={{
-                  ...styles.stepText,
-                  transform: visibleSections.has('steps') ? 'translateY(0)' : 'translateY(20px)',
-                  opacity: visibleSections.has('steps') ? 1 : 0,
-                  transition: 'transform 0.6s ease-out 0.8s, opacity 0.6s ease-out 0.8s'
-                }}>
-                  Çocuğunuzun ilerlemesini profil sayfasından takip edin,
-                  başarılarını kutlayın.
-                </p>
-              </div>
+          <AnimatedSection delay={200}>
+            <div className="step-card">
+              <div className="step-number">2</div>
+              <h4>Hesap Oluşturun</h4>
+              <p>Çocuğunuz için yaş grubuna uygun profil oluşturun</p>
             </div>
-          </div>
+          </AnimatedSection>
 
-          <div id="faq" style={styles.faqSection}>
-            <h2 style={{
-              ...styles.faqTitle,
-              transform: visibleSections.has('faq') ? 'translateY(0)' : 'translateY(30px)',
-              opacity: visibleSections.has('faq') ? 1 : 0,
-              transition: 'transform 0.8s ease-out, opacity 0.8s ease-out'
-            }}>Sıkça Sorulan Sorular</h2>
-            <div style={styles.faqGrid}>
-              <div className="faq-item" style={{
-                ...styles.faqItem,
-                transform: visibleSections.has('faq') ? 'translateY(0)' : 'translateY(40px)',
-                opacity: visibleSections.has('faq') ? 1 : 0,
-                transition: 'transform 0.8s ease-out 0.2s, opacity 0.8s ease-out 0.2s'
-              }}>
-                <h4 style={{
-                  ...styles.faqQuestion,
-                  transform: visibleSections.has('faq') ? 'translateY(0)' : 'translateY(20px)',
-                  opacity: visibleSections.has('faq') ? 1 : 0,
-                  transition: 'transform 0.6s ease-out 0.3s, opacity 0.6s ease-out 0.3s'
-                }}>Uygulama ücretsiz mi?</h4>
-                <p style={{
-                  ...styles.faqAnswer,
-                  transform: visibleSections.has('faq') ? 'translateY(0)' : 'translateY(20px)',
-                  opacity: visibleSections.has('faq') ? 1 : 0,
-                  transition: 'transform 0.6s ease-out 0.4s, opacity 0.6s ease-out 0.4s'
-                }}>
-                  Evet, Küçük Kaşif tamamen ücretsizdir. Hiçbir ücret veya
-                  gizli maliyet yoktur.
-                </p>
-              </div>
-              <div className="faq-item" style={{
-                ...styles.faqItem,
-                transform: visibleSections.has('faq') ? 'translateY(0)' : 'translateY(40px)',
-                opacity: visibleSections.has('faq') ? 1 : 0,
-                transition: 'transform 0.8s ease-out 0.4s, opacity 0.8s ease-out 0.4s'
-              }}>
-                <h4 style={{
-                  ...styles.faqQuestion,
-                  transform: visibleSections.has('faq') ? 'translateY(0)' : 'translateY(20px)',
-                  opacity: visibleSections.has('faq') ? 1 : 0,
-                  transition: 'transform 0.6s ease-out 0.5s, opacity 0.6s ease-out 0.5s'
-                }}>İnternet bağlantısı gerekli mi?</h4>
-                <p style={{
-                  ...styles.faqAnswer,
-                  transform: visibleSections.has('faq') ? 'translateY(0)' : 'translateY(20px)',
-                  opacity: visibleSections.has('faq') ? 1 : 0,
-                  transition: 'transform 0.6s ease-out 0.6s, opacity 0.6s ease-out 0.6s'
-                }}>
-                  İlk giriş ve veri senkronizasyonu için internet gereklidir.
-                  Bazı oyunlar çevrimdışı oynanabilir.
-                </p>
-              </div>
-              <div className="faq-item" style={{
-                ...styles.faqItem,
-                transform: visibleSections.has('faq') ? 'translateY(0)' : 'translateY(40px)',
-                opacity: visibleSections.has('faq') ? 1 : 0,
-                transition: 'transform 0.8s ease-out 0.6s, opacity 0.8s ease-out 0.6s'
-              }}>
-                <h4 style={{
-                  ...styles.faqQuestion,
-                  transform: visibleSections.has('faq') ? 'translateY(0)' : 'translateY(20px)',
-                  opacity: visibleSections.has('faq') ? 1 : 0,
-                  transition: 'transform 0.6s ease-out 0.7s, opacity 0.6s ease-out 0.7s'
-                }}>Hangi yaş gruplarına uygun?</h4>
-                <p style={{
-                  ...styles.faqAnswer,
-                  transform: visibleSections.has('faq') ? 'translateY(0)' : 'translateY(20px)',
-                  opacity: visibleSections.has('faq') ? 1 : 0,
-                  transition: 'transform 0.6s ease-out 0.8s, opacity 0.6s ease-out 0.8s'
-                }}>
-                  5-14 yaş arası çocuklar için tasarlanmıştır. Oyunlar yaş
-                  grubuna göre otomatik olarak ayarlanır.
-                </p>
-              </div>
-              <div className="faq-item" style={{
-                ...styles.faqItem,
-                transform: visibleSections.has('faq') ? 'translateY(0)' : 'translateY(40px)',
-                opacity: visibleSections.has('faq') ? 1 : 0,
-                transition: 'transform 0.8s ease-out 0.8s, opacity 0.8s ease-out 0.8s'
-              }}>
-                <h4 style={{
-                  ...styles.faqQuestion,
-                  transform: visibleSections.has('faq') ? 'translateY(0)' : 'translateY(20px)',
-                  opacity: visibleSections.has('faq') ? 1 : 0,
-                  transition: 'transform 0.6s ease-out 0.9s, opacity 0.6s ease-out 0.9s'
-                }}>Reklam var mı?</h4>
-                <p style={{
-                  ...styles.faqAnswer,
-                  transform: visibleSections.has('faq') ? 'translateY(0)' : 'translateY(20px)',
-                  opacity: visibleSections.has('faq') ? 1 : 0,
-                  transition: 'transform 0.6s ease-out 1s, opacity 0.6s ease-out 1s'
-                }}>
-                  Hayır, uygulama tamamen reklamsızdır. Çocuğunuz güvenli
-                  bir ortamda oynayabilir.
-                </p>
-              </div>
+          <AnimatedSection delay={300}>
+            <div className="step-card">
+              <div className="step-number">3</div>
+              <h4>Oynamaya Başlayın</h4>
+              <p>Eğlenceli oyunlarla öğrenme macerasına başlayın</p>
             </div>
-          </div>
+          </AnimatedSection>
         </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="faq-section">
+        <AnimatedSection>
+          <h2 className="section-title">Sıkça Sorulan Sorular</h2>
+        </AnimatedSection>
+
+        <div className="faq-grid">
+          <AnimatedSection delay={100}>
+            <div className="faq-item">
+              <h4>Uygulama ücretsiz mi?</h4>
+              <p>Evet, Küçük Kaşif tamamen ücretsizdir. Hiçbir gizli ücret yoktur.</p>
+            </div>
+          </AnimatedSection>
+
+          <AnimatedSection delay={150}>
+            <div className="faq-item">
+              <h4>Hangi yaş grupları için uygun?</h4>
+              <p>5-14 yaş arası çocuklar için tasarlanmıştır.</p>
+            </div>
+          </AnimatedSection>
+
+          <AnimatedSection delay={200}>
+            <div className="faq-item">
+              <h4>İnternet gerekli mi?</h4>
+              <p>İlk giriş için gereklidir, bazı oyunlar çevrimdışı çalışır.</p>
+            </div>
+          </AnimatedSection>
+
+          <AnimatedSection delay={250}>
+            <div className="faq-item">
+              <h4>Reklam var mı?</h4>
+              <p>Zorunlu reklam yoktur. İsteğe bağlı olarak elmas kazanmak için reklam izlenebilir.</p>
+            </div>
+          </AnimatedSection>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="download-cta">
+        <AnimatedSection>
+          <h2>Hazır mısınız?</h2>
+          <p>Çocuğunuzun eğlenerek öğrenmesi için hemen indirin!</p>
+          <Link to="/" className="cta-button">
+            🏠 Ana Sayfaya Dön
+          </Link>
+        </AnimatedSection>
       </section>
     </div>
   );
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  page: {
-    minHeight: '100vh',
-    backgroundColor: '#fafafa',
-  },
-  hero: {
-    background: `linear-gradient(135deg, ${Colors.spacePurple} 0%, ${Colors.darkPurple} 100%)`,
-    color: Colors.pureWhite,
-    padding: '6rem 2rem',
-    textAlign: 'center',
-    position: 'relative' as const,
-    overflow: 'hidden',
-  },
-  container: {
-    maxWidth: '1200px',
-    margin: '0 auto',
-    padding: '0 2rem',
-  },
-  title: {
-    fontSize: '3.5rem',
-    fontWeight: '700',
-    marginBottom: '1.5rem',
-    letterSpacing: '-0.02em',
-  },
-  subtitle: {
-    fontSize: '1.375rem',
-    opacity: 0.9,
-    fontWeight: '400',
-  },
-  content: {
-    padding: '6rem 0',
-  },
-  downloadGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-    gap: '3rem',
-    marginBottom: '6rem',
-  },
-  downloadCard: {
-    backgroundColor: Colors.pureWhite,
-    padding: '3.5rem 2.5rem',
-    borderRadius: '24px',
-    textAlign: 'center',
-    boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
-    transition: 'transform 0.4s ease-out, box-shadow 0.4s ease-out',
-    willChange: 'transform',
-  },
-  icon: {
-    fontSize: '4.5rem',
-    marginBottom: '2rem',
-    display: 'block',
-  },
-  cardTitle: {
-    fontSize: '2rem',
-    fontWeight: '600',
-    color: Colors.spacePurple,
-    marginBottom: '1.25rem',
-    letterSpacing: '-0.01em',
-  },
-  cardText: {
-    fontSize: '1.125rem',
-    color: '#666',
-    marginBottom: '2.5rem',
-    lineHeight: '1.7',
-  },
-  downloadButton: {
-    backgroundColor: Colors.energyOrange,
-    color: Colors.pureWhite,
-    padding: '1.125rem 2.5rem',
-    borderRadius: '50px',
-    border: 'none',
-    fontSize: '1.0625rem',
-    fontWeight: '600',
-    cursor: 'pointer',
-    transition: 'all 0.3s ease-out',
-    width: '100%',
-    maxWidth: '320px',
-    boxShadow: '0 4px 16px rgba(245, 126, 55, 0.3)',
-    willChange: 'transform',
-  },
-  requirements: {
-    fontSize: '0.9375rem',
-    color: '#999',
-    marginTop: '1.25rem',
-  },
-  infoSection: {
-    marginBottom: '6rem',
-  },
-  infoTitle: {
-    fontSize: '2.5rem',
-    fontWeight: '600',
-    textAlign: 'center',
-    marginBottom: '4rem',
-    color: Colors.spacePurple,
-    letterSpacing: '-0.02em',
-  },
-  stepGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-    gap: '2.5rem',
-  },
-  step: {
-    backgroundColor: Colors.pureWhite,
-    padding: '2.5rem',
-    borderRadius: '20px',
-    boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
-    transition: 'transform 0.3s ease-out',
-    willChange: 'transform',
-  },
-  stepNumber: {
-    width: '60px',
-    height: '60px',
-    borderRadius: '50%',
-    backgroundColor: Colors.energyOrange,
-    color: Colors.pureWhite,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '1.75rem',
-    fontWeight: '600',
-    marginBottom: '1.5rem',
-    boxShadow: '0 4px 16px rgba(245, 126, 55, 0.3)',
-  },
-  stepTitle: {
-    fontSize: '1.375rem',
-    fontWeight: '600',
-    color: Colors.spacePurple,
-    marginBottom: '1rem',
-    letterSpacing: '-0.01em',
-  },
-  stepText: {
-    fontSize: '1.0625rem',
-    color: '#666',
-    lineHeight: '1.7',
-  },
-  faqSection: {
-    backgroundColor: Colors.pureWhite,
-    padding: '4rem',
-    borderRadius: '24px',
-    boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
-  },
-  faqTitle: {
-    fontSize: '2.5rem',
-    fontWeight: '600',
-    textAlign: 'center',
-    marginBottom: '3rem',
-    color: Colors.spacePurple,
-    letterSpacing: '-0.02em',
-  },
-  faqGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-    gap: '2.5rem',
-  },
-  faqItem: {
-    padding: '2rem',
-    borderLeft: `4px solid ${Colors.brightYellow}`,
-    backgroundColor: '#f8f9fa',
-    borderRadius: '12px',
-    transition: 'transform 0.3s ease-out',
-    willChange: 'transform',
-  },
-  faqQuestion: {
-    fontSize: '1.1875rem',
-    fontWeight: '600',
-    color: Colors.spacePurple,
-    marginBottom: '1rem',
-    letterSpacing: '-0.01em',
-  },
-  faqAnswer: {
-    fontSize: '1.0625rem',
-    color: '#666',
-    lineHeight: '1.7',
-  },
-};

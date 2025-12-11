@@ -88,7 +88,7 @@ export default function Home() {
             <FeatureCard
               icon="👶"
               title="Yaşa Uygun İçerik"
-              description="5-7, 8-10, 11-13 ve 14+ yaş gruplarına özel olarak tasarlanmış zorluk seviyeleri"
+              description="5-7, 8-10, 11-13 ve 14+ yaş gruplarına özel zorluk seviyeleri"
             />
           </AnimatedSection>
 
@@ -102,9 +102,9 @@ export default function Home() {
 
           <AnimatedSection delay={400}>
             <FeatureCard
-              icon="🎨"
-              title="Güvenli ve Renkli"
-              description="Çocuklar için tasarlanmış renkli arayüz, reklamsız ve tamamen güvenli"
+              icon="🛡️"
+              title="Güvenli Ortam"
+              description="Çocuklar için güvenli, zorunlu reklam içermeyen eğitici platform"
             />
           </AnimatedSection>
         </div>
@@ -132,7 +132,7 @@ export default function Home() {
             </div>
           </AnimatedSection>
 
-          <AnimatedSection delay={200}>
+          <AnimatedSection delay={150}>
             <div className="category-card">
               <div className="category-icon">🧠</div>
               <h3 className="category-title">Hafıza</h3>
@@ -142,7 +142,7 @@ export default function Home() {
             </div>
           </AnimatedSection>
 
-          <AnimatedSection delay={300}>
+          <AnimatedSection delay={200}>
             <div className="category-card">
               <div className="category-icon">🎯</div>
               <h3 className="category-title">Dikkat</h3>
@@ -152,12 +152,32 @@ export default function Home() {
             </div>
           </AnimatedSection>
 
-          <AnimatedSection delay={400}>
+          <AnimatedSection delay={250}>
             <div className="category-card">
               <div className="category-icon">🧩</div>
               <h3 className="category-title">Problem Çözme</h3>
               <p className="category-description">
                 Mantıksal düşünme ve analitik zeka geliştiren bulmacalar
+              </p>
+            </div>
+          </AnimatedSection>
+
+          <AnimatedSection delay={300}>
+            <div className="category-card">
+              <div className="category-icon">📚</div>
+              <h3 className="category-title">Kelime</h3>
+              <p className="category-description">
+                Kelime hazinesini genişleten eğlenceli dil oyunları
+              </p>
+            </div>
+          </AnimatedSection>
+
+          <AnimatedSection delay={350}>
+            <div className="category-card">
+              <div className="category-icon">🎮</div>
+              <h3 className="category-title">Eğlence</h3>
+              <p className="category-description">
+                Bubble Shooter, Ludo ve daha fazla klasik oyun
               </p>
             </div>
           </AnimatedSection>

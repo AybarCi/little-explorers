@@ -10,8 +10,8 @@ export default function Footer() {
   }, []);
 
   const socialLinks = [
-    { icon: '📧', label: 'E-posta', href: 'mailto:info@kucukkasif.com' },
-    { icon: '🌐', label: 'Web Sitesi', href: 'https://kucukkasif.com' },
+    { icon: '📧', label: 'E-posta', href: 'mailto:info@kucuk-kasif.com' },
+    { icon: '🌐', label: 'Web Sitesi', href: 'https://kucuk-kasif.com' },
   ];
 
   const quickLinks = [
@@ -31,7 +31,7 @@ export default function Footer() {
             <h3 style={styles.brandTitle}>Küçük Kaşif</h3>
           </div>
           <p style={styles.brandDescription}>
-            Çocuklar için eğlenceli ve eğitici oyunlarla dolu bir uzay macerası. 
+            Çocuklar için eğlenceli ve eğitici oyunlarla dolu bir uzay macerası.
             Güvenli, reklamsız ve eğitici içeriklerle çocuklarınızın gelişimini destekliyoruz.
           </p>
           <div style={styles.socialLinks}>
@@ -70,11 +70,11 @@ export default function Footer() {
           <div style={styles.contactInfo}>
             <div style={styles.contactItem}>
               <span style={styles.contactIcon}>📧</span>
-              <span style={styles.contactText}>info@kucukkasif.com</span>
+              <span style={styles.contactText}>info@kucuk-kasif.com</span>
             </div>
             <div style={styles.contactItem}>
               <span style={styles.contactIcon}>🌐</span>
-              <span style={styles.contactText}>www.kucukkasif.com</span>
+              <span style={styles.contactText}>www.kucuk-kasif.com</span>
             </div>
             <div style={styles.contactItem}>
               <span style={styles.contactIcon}>📱</span>

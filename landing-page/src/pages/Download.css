@@ -1,0 +1,331 @@
+.download-page {
+    width: 100%;
+}
+
+/* Hero */
+.download-hero {
+    min-height: 60vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 120px 40px 80px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.download-hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1), transparent 60%);
+    animation: pulse 6s ease-in-out infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+.download-hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 700px;
+}
+
+.download-badge {
+    display: inline-block;
+    padding: 10px 20px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    border-radius: 25px;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.download-title {
+    font-size: 56px;
+    font-weight: 800;
+    color: white;
+    line-height: 1.1;
+    margin-bottom: 20px;
+}
+
+.gradient-text {
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.download-subtitle {
+    font-size: 20px;
+    color: rgba(255, 255, 255, 0.9);
+    line-height: 1.6;
+}
+
+/* Download Cards */
+.download-cards-section {
+    padding: 80px 40px;
+    background: #f8f9fa;
+}
+
+.download-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 32px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.download-card {
+    background: white;
+    padding: 48px 32px;
+    border-radius: 24px;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 2px solid transparent;
+}
+
+.download-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+    border-color: rgba(102, 126, 234, 0.3);
+}
+
+.store-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.store-icon.apple-icon {
+    color: #1a1a1a;
+}
+
+.store-icon.play-icon {
+    color: #00C851;
+}
+
+.download-card h3 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 8px;
+}
+
+.download-card p {
+    font-size: 16px;
+    color: #666;
+    margin-bottom: 24px;
+}
+
+.download-btn {
+    display: inline-block;
+    padding: 16px 32px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    text-decoration: none;
+    color: white;
+    transition: all 0.3s ease;
+    width: 100%;
+    max-width: 250px;
+}
+
+.download-btn.ios {
+    background: linear-gradient(135deg, #1a1a1a, #333);
+}
+
+.download-btn.android {
+    background: linear-gradient(135deg, #00C851, #007E33);
+}
+
+.download-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.requirement {
+    display: block;
+    margin-top: 16px;
+    font-size: 13px;
+    color: #999;
+}
+
+/* Steps */
+.steps-section {
+    padding: 100px 40px;
+    background: white;
+}
+
+.section-title {
+    font-size: 42px;
+    font-weight: 800;
+    text-align: center;
+    color: #1a1a1a;
+    margin-bottom: 60px;
+}
+
+.steps-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 32px;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.step-card {
+    background: linear-gradient(135deg, #f8f9fa, #fff);
+    padding: 40px 32px;
+    border-radius: 20px;
+    text-align: center;
+    border: 2px solid #f0f0f0;
+    transition: all 0.3s ease;
+}
+
+.step-card:hover {
+    transform: translateY(-4px);
+    border-color: #667eea;
+    box-shadow: 0 12px 40px rgba(102, 126, 234, 0.15);
+}
+
+.step-number {
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0 auto 20px;
+}
+
+.step-card h4 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 12px;
+}
+
+.step-card p {
+    font-size: 16px;
+    color: #666;
+    line-height: 1.6;
+}
+
+/* FAQ */
+.faq-section {
+    padding: 100px 40px;
+    background: #f8f9fa;
+}
+
+.faq-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.faq-item {
+    background: white;
+    padding: 32px;
+    border-radius: 16px;
+    border-left: 4px solid #667eea;
+    transition: all 0.3s ease;
+}
+
+.faq-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+}
+
+.faq-item h4 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 12px;
+}
+
+.faq-item p {
+    font-size: 15px;
+    color: #666;
+    line-height: 1.6;
+}
+
+/* CTA */
+.download-cta {
+    padding: 100px 40px;
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    text-align: center;
+}
+
+.download-cta h2 {
+    font-size: 48px;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 16px;
+}
+
+.download-cta p {
+    font-size: 20px;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 32px;
+}
+
+.cta-button {
+    display: inline-block;
+    padding: 18px 40px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    font-size: 18px;
+    font-weight: 600;
+    border-radius: 12px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.cta-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .download-hero {
+        padding: 100px 24px 60px;
+    }
+
+    .download-title {
+        font-size: 36px;
+    }
+
+    .section-title {
+        font-size: 32px;
+    }
+
+    .download-cta h2 {
+        font-size: 32px;
+    }
+}

@@ -1,0 +1,214 @@
+.privacy-page {
+    width: 100%;
+}
+
+/* Hero */
+.privacy-hero {
+    min-height: 50vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 120px 40px 80px;
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 50%, #00d4ff 100%);
+    text-align: center;
+    position: relative;
+}
+
+.privacy-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.privacy-badge {
+    display: inline-block;
+    padding: 10px 20px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border-radius: 25px;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 2;
+}
+
+.privacy-hero h1 {
+    font-size: 56px;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 16px;
+    position: relative;
+    z-index: 2;
+}
+
+.privacy-hero p {
+    font-size: 22px;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 2;
+}
+
+.update-date {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+    position: relative;
+    z-index: 2;
+}
+
+/* Content */
+.privacy-content {
+    padding: 80px 40px;
+    background: #f8f9fa;
+}
+
+.content-container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.intro-card {
+    background: linear-gradient(135deg, #11998e, #38ef7d);
+    padding: 48px;
+    border-radius: 24px;
+    color: white;
+    margin-bottom: 40px;
+}
+
+.intro-card h2 {
+    font-size: 32px;
+    font-weight: 800;
+    margin-bottom: 16px;
+}
+
+.intro-card p {
+    font-size: 18px;
+    line-height: 1.7;
+    opacity: 0.95;
+}
+
+.policy-section {
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.policy-section h3 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 24px;
+}
+
+.policy-section p {
+    font-size: 16px;
+    color: #555;
+    line-height: 1.8;
+}
+
+.policy-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 24px;
+}
+
+.policy-item {
+    background: #f8f9fa;
+    padding: 24px;
+    border-radius: 16px;
+}
+
+.policy-item.highlight {
+    background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+    color: white;
+}
+
+.policy-item.highlight h4,
+.policy-item.highlight li {
+    color: white;
+}
+
+.policy-item h4 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 16px;
+}
+
+.policy-item ul {
+    list-style: none;
+    padding: 0;
+}
+
+.policy-item li {
+    font-size: 15px;
+    color: #555;
+    padding: 6px 0;
+}
+
+.usage-list {
+    list-style: none;
+    padding: 0;
+}
+
+.usage-list li {
+    font-size: 17px;
+    color: #333;
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.usage-list li:last-child {
+    border-bottom: none;
+}
+
+.highlight-text {
+    background: linear-gradient(135deg, #f8f9fa, #fff);
+    padding: 24px;
+    border-radius: 16px;
+    border-left: 4px solid #11998e;
+}
+
+.contact-card {
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    padding: 48px;
+    border-radius: 24px;
+    text-align: center;
+    color: white;
+}
+
+.contact-card h3 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 16px;
+}
+
+.contact-card p {
+    font-size: 18px;
+    opacity: 0.9;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .privacy-hero {
+        padding: 100px 24px 60px;
+    }
+
+    .privacy-hero h1 {
+        font-size: 36px;
+    }
+
+    .intro-card,
+    .policy-section {
+        padding: 32px 24px;
+    }
+}
