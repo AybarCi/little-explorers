@@ -12,7 +12,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}/landing-page
+  IMAGE_NAME: aybarci/little-explorers/landing-page
 
 jobs:
   build-and-push:
