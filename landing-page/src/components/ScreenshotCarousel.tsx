@@ -27,20 +27,11 @@ export default function ScreenshotCarousel({ screenshots }: ScreenshotCarouselPr
                 <div className="device-frame">
                     <div className="device-notch"></div>
                     <div className="device-screen">
-                        <div
-                            className="screenshot-container"
-                            style={{ transform: `translateX(-${activeIndex * 100}%)` }}
-                        >
-                            {screenshots.map((screenshot, index) => (
-                                <img
-                                    key={index}
-                                    src={screenshot.url}
-                                    alt={screenshot.alt}
-                                    className="screenshot-image"
-                                    loading="lazy"
-                                />
-                            ))}
-                        </div>
+                        <img
+                            src={screenshots[activeIndex].url}
+                            alt={screenshots[activeIndex].alt}
+                            className="screenshot-image"
+                        />
                     </div>
                 </div>
             </div>
