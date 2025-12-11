@@ -98,10 +98,10 @@ export default function SignUpScreen() {
 
         <View style={styles.form}>
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Ad Soyad</Text>
+            <Text style={styles.label}>Kullanıcı Adı</Text>
             <TextInput
               style={styles.input}
-              placeholder="Ad ve soyadınızı girin"
+              placeholder="Kullanıcı adınızı girin"
               placeholderTextColor="rgba(255, 255, 255, 0.5)"
               value={fullName}
               onChangeText={setFullName}
