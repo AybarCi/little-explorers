@@ -2,24 +2,20 @@ version: '3.8'
 
 services:
   landing-page:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/aybarcı/little-explorers/landing-page:latest
     container_name: kucuk-kasif-landing
     ports:
       - "3000:80"
     restart: unless-stopped
-    environment:
-      - NODE_ENV=production
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/"]
       interval: 30s
       timeout: 3s
       retries: 3
       start_period: 5s
-    networks:
-      - landing-network
 
-networks:
-  landing-network:
-    driver: bridge
+# Kullanım:
+# 1. GitHub'dan image çek: docker-compose pull
+# 2. Başlat: docker-compose up -d
+# 3. Logları kontrol et: docker-compose logs -f
+# 4. Durdur: docker-compose down
