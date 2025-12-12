@@ -159,12 +159,41 @@ export default function TicTacToeGame({ onComplete, ageGroup }: TicTacToeGamePro
 
         if (availableMoves.length === 0) return -1;
 
-        // Easy: Random move
+        const size = config.gridSize;
+        const center = size === 3 ? 4 : [5, 6, 9, 10]; // Center positions
+        const corners = size === 3 ? [0, 2, 6, 8] : [0, 3, 12, 15];
+
+        // Easy: 50% chance to make smart move, 50% random
+        // But always blocks obvious wins
         if (difficulty === 'easy') {
+            // Always check if AI can win
+            for (let move of availableMoves) {
+                const temp = [...squares];
+                temp[move] = 'O';
+                if (checkWinner(temp).winner === 'O') return move;
+            }
+            // 60% chance to block player's win
+            if (Math.random() < 0.6) {
+                for (let move of availableMoves) {
+                    const temp = [...squares];
+                    temp[move] = 'X';
+                    if (checkWinner(temp).winner === 'X') return move;
+                }
+            }
+            // 40% chance to take center/corner if available
+            if (Math.random() < 0.4) {
+                if (size === 3 && availableMoves.includes(center as number)) {
+                    return center as number;
+                }
+                const availableCorners = corners.filter(c => availableMoves.includes(c));
+                if (availableCorners.length > 0) {
+                    return availableCorners[Math.floor(Math.random() * availableCorners.length)];
+                }
+            }
             return availableMoves[Math.floor(Math.random() * availableMoves.length)];
         }
 
-        // Medium: Block winning moves, otherwise random
+        // Medium: Always blocks, prefers strategic positions
         if (difficulty === 'medium') {
             // Check if AI can win
             for (let move of availableMoves) {
@@ -172,11 +201,34 @@ export default function TicTacToeGame({ onComplete, ageGroup }: TicTacToeGamePro
                 temp[move] = 'O';
                 if (checkWinner(temp).winner === 'O') return move;
             }
-            // Check if Player can win and block
+            // Block player's win
             for (let move of availableMoves) {
                 const temp = [...squares];
                 temp[move] = 'X';
                 if (checkWinner(temp).winner === 'X') return move;
+            }
+            // Take center if available
+            if (size === 3 && availableMoves.includes(center as number)) {
+                return center as number;
+            }
+            // Take corners
+            const availableCorners = corners.filter(c => availableMoves.includes(c));
+            if (availableCorners.length > 0) {
+                return availableCorners[Math.floor(Math.random() * availableCorners.length)];
+            }
+            // Check for fork opportunities (two ways to win)
+            for (let move of availableMoves) {
+                const temp = [...squares];
+                temp[move] = 'O';
+                let winningMoves = 0;
+                for (let m2 of availableMoves) {
+                    if (m2 !== move) {
+                        const temp2 = [...temp];
+                        temp2[m2] = 'O';
+                        if (checkWinner(temp2).winner === 'O') winningMoves++;
+                    }
+                }
+                if (winningMoves >= 2) return move;
             }
             return availableMoves[Math.floor(Math.random() * availableMoves.length)];
         }

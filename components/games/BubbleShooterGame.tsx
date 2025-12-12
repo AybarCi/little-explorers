@@ -45,6 +45,103 @@ const getNeighbors = (r: number, c: number) => {
     return offsets.map(([dr, dc]) => ({ r: r + dr, c: c + dc }));
 };
 
+// SHARED RAYCAST - used by both aim line and projectile for identical paths
+interface RaycastResult {
+    path: { x: number, y: number }[];
+    finalX: number;
+    finalY: number;
+}
+
+const calculateRaycastPath = (
+    startX: number,
+    startY: number,
+    angle: number,
+    screenWidth: number,
+    bubbleSize: number,
+    bubblePositions: { x: number, y: number }[]
+): RaycastResult => {
+    const radius = bubbleSize / 2;
+    const leftWallX = radius;
+    const rightWallX = screenWidth - radius;
+
+    const path: { x: number, y: number }[] = [{ x: startX, y: startY }];
+    let currentX = startX;
+    let currentY = startY;
+
+    // Direction from angle
+    let vx = Math.sin(angle);
+    let vy = -Math.cos(angle);
+
+    // Normalize
+    const mag = Math.sqrt(vx * vx + vy * vy);
+    vx /= mag;
+    vy /= mag;
+
+    const stepSize = 8; // Balanced step size
+    let finalX = currentX;
+    let finalY = currentY;
+
+    for (let step = 0; step < 300; step++) {
+        let nextX = currentX + vx * stepSize;
+        let nextY = currentY + vy * stepSize;
+
+        // Wall bounce - LEFT
+        if (nextX < leftWallX && vx < 0) {
+            const distToWall = currentX - leftWallX;
+            const tHit = distToWall / (-vx);
+            const hitY = currentY + vy * tHit;
+            vx = -vx;
+            const remaining = stepSize - tHit;
+            nextX = leftWallX + vx * remaining;
+            nextY = hitY + vy * remaining;
+        }
+        // Wall bounce - RIGHT
+        else if (nextX > rightWallX && vx > 0) {
+            const distToWall = rightWallX - currentX;
+            const tHit = distToWall / vx;
+            const hitY = currentY + vy * tHit;
+            vx = -vx;
+            const remaining = stepSize - tHit;
+            nextX = rightWallX + vx * remaining;
+            nextY = hitY + vy * remaining;
+        }
+
+        // Clamp to bounds
+        nextX = Math.max(leftWallX, Math.min(rightWallX, nextX));
+
+        path.push({ x: nextX, y: nextY });
+
+        // Check bubble collision
+        let hitBubble = false;
+        for (const bp of bubblePositions) {
+            const dist = Math.sqrt(Math.pow(nextX - bp.x, 2) + Math.pow(nextY - bp.y, 2));
+            if (dist < bubbleSize) {
+                hitBubble = true;
+                // Use point between current and next for better placement
+                finalX = (currentX + nextX) / 2;
+                finalY = (currentY + nextY) / 2;
+                break;
+            }
+        }
+
+        if (hitBubble) break;
+
+        // Top wall
+        if (nextY <= radius) {
+            finalX = nextX;
+            finalY = radius;
+            break;
+        }
+
+        currentX = nextX;
+        currentY = nextY;
+        finalX = nextX;
+        finalY = nextY;
+    }
+
+    return { path, finalX, finalY };
+};
+
 const findMatches = (ents: any, startKey: string): string[] => {
     if (!ents[startKey]) return [];
     const startBody = ents[startKey].body;
@@ -193,70 +290,37 @@ const ProjectileRenderer = (props: any) => {
 };
 
 const AimLineRenderer = (props: any) => {
-    const { angle, startX, startY, layout } = props;
+    const { angle, startX, startY, layout, bubbleSize, bubblePositions } = props;
     if (!layout) return null;
 
     const { width, height } = layout;
-    const dots = [];
+    const size = bubbleSize || 30;
 
-    // Raycasting simulation
-    let currentX = startX;
-    let currentY = startY;
-    // Angle 0 is UP (in our logic from GameLogic: atan2(dy, dx) + PI/2)
-    // So: 
-    // angle = 0 -> Up -> dy should be negative
-    // vx = sin(angle), vy = -cos(angle)
-    let vx = Math.sin(angle);
-    let vy = -Math.cos(angle);
+    // Use shared raycast function
+    const { path } = calculateRaycastPath(
+        startX,
+        startY,
+        angle,
+        width,
+        size,
+        bubblePositions || []
+    );
 
-    const stepSize = 20;
-    const maxSteps = 50; // Limit length
-    const wallPadding = 15; // Ball radius approx
-
-    for (let i = 0; i < maxSteps; i++) {
-        // Next position
-        let nextX = currentX + vx * stepSize;
-        let nextY = currentY + vy * stepSize;
-
-        // Check Wall Collisions
-        if (nextX <= wallPadding) {
-            // Hit Left Wall
-            // Calculate exact intersection Y
-            // (wallPadding - currentX) / vx = t
-            // intersectY = currentY + vy * t
-            const t = (wallPadding - currentX) / vx;
-            const intersectY = currentY + vy * t;
-
-            // Draw segment to intersection
-            // (Simplified: just bounce from next step)
-            vx = -vx; // Reflect
-            nextX = wallPadding + (wallPadding - nextX); // Mirror pos
-        } else if (nextX >= width - wallPadding) {
-            // Hit Right Wall
-            vx = -vx; // Reflect
-            nextX = (width - wallPadding) - (nextX - (width - wallPadding));
-        }
-
-        if (nextY <= 0) break; // Top of screen
-
-        dots.push(
-            <View
-                key={i}
-                style={{
-                    position: 'absolute',
-                    left: nextX - 3,
-                    top: nextY - 3,
-                    width: 6,
-                    height: 6,
-                    borderRadius: 3,
-                    backgroundColor: 'rgba(55, 65, 81, 0.6)',
-                }}
-            />
-        );
-
-        currentX = nextX;
-        currentY = nextY;
-    }
+    // Create dots from path (skip first point which is cannon)
+    const dots = path.slice(1).map((point, i) => (
+        <View
+            key={i}
+            style={{
+                position: 'absolute',
+                left: point.x - 4,
+                top: point.y - 4,
+                width: 8,
+                height: 8,
+                borderRadius: 4,
+                backgroundColor: i % 3 === 0 ? 'rgba(55, 65, 81, 0.8)' : 'rgba(55, 65, 81, 0.4)',
+            }}
+        />
+    ));
 
     return (
         <View style={{ position: 'absolute', top: 0, left: 0, width: width, height: height, zIndex: 10 }} pointerEvents="none">
@@ -286,11 +350,23 @@ const GameLogic = (entities: any, { touches, dispatch, events, layout }: any) =>
     const CANNON_X = SCREEN_WIDTH / 2;
     const CANNON_Y = SCREEN_HEIGHT - CANNON_BOTTOM_OFFSET;
 
-    // Update Aim Layout
+    // Update Aim Layout and bubble positions for collision detection
     if (entities.aim) {
         entities.aim.layout = layout;
         entities.aim.startX = CANNON_X;
         entities.aim.startY = CANNON_Y;
+
+        // Collect bubble positions for aim line collision
+        const bubblePositions: { x: number, y: number }[] = [];
+        Object.keys(entities).forEach(key => {
+            if (key.startsWith('bubble_') && entities[key].body && !entities[key].isExploding) {
+                bubblePositions.push({
+                    x: entities[key].body.position.x,
+                    y: entities[key].body.position.y
+                });
+            }
+        });
+        entities.aim.bubblePositions = bubblePositions;
     }
 
     // Aiming - Check for move OR start to be responsive
@@ -310,34 +386,112 @@ const GameLogic = (entities: any, { touches, dispatch, events, layout }: any) =>
         entities.aim.angle = angle;
     }
 
-    // Shooting
+    // Shooting - Calculate path via shared raycast, then animate
     const press = touches.find((x: any) => x.type === 'end');
     if (press && !entities.projectile) {
         const angle = entities.aim.angle;
-        const speed = 18; // Faster shot
-        const vx = Math.sin(angle) * speed;
-        const vy = -Math.cos(angle) * speed;
-
         const size = config.bubbleSize;
-        const projectile = Matter.Bodies.circle(CANNON_X, CANNON_Y, size / 2, {
-            label: 'projectile',
-            restitution: 1, // Elastic bounce
-            friction: 0,
-            frictionAir: 0,
-            frictionStatic: 0,
-            inertia: Infinity,
-            collisionFilter: { category: 0x0002, mask: 0x0001 }
+        const colorToShoot = entities.nextColor;
+        const gridStartX = (SCREEN_WIDTH - config.cols * size) / 2;
+
+        // Get bubble positions (same as aim line uses)
+        const bubblePositions: { x: number, y: number }[] = [];
+        Object.keys(entities).forEach(key => {
+            if (key.startsWith('bubble_') && entities[key].body && !entities[key].isExploding) {
+                bubblePositions.push({
+                    x: entities[key].body.position.x,
+                    y: entities[key].body.position.y
+                });
+            }
         });
 
-        Matter.Body.setVelocity(projectile, { x: vx, y: vy });
-        Matter.World.add(engine.world, projectile);
+        // Use SHARED raycast function (identical to aim line)
+        const { path, finalX, finalY } = calculateRaycastPath(
+            CANNON_X,
+            CANNON_Y,
+            angle,
+            SCREEN_WIDTH,
+            size,
+            bubblePositions
+        );
 
-        const colorToShoot = entities.nextColor;
+        // SMART GRID PLACEMENT: Find nearest empty cell that is ADJACENT to existing bubbles
+        let bestRow = -1;
+        let bestCol = -1;
+        let minDist = Infinity;
+
+        // Helper: check if cell has any filled neighbor
+        const hasFilledNeighbor = (r: number, c: number): boolean => {
+            if (r === 0) return true; // Row 0 is always valid (top attachment)
+            const neighbors = getNeighbors(r, c);
+            for (const { r: nr, c: nc } of neighbors) {
+                if (nr < 0 || nr >= config.rows) continue;
+                const nMaxCols = nr % 2 === 0 ? config.cols : config.cols - 1;
+                if (nc < 0 || nc >= nMaxCols) continue;
+                const nKey = `bubble_${nr}_${nc}`;
+                if (entities[nKey] && !entities[nKey].isExploding) {
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        // Search all cells for the closest valid one
+        for (let r = 0; r < config.rows; r++) {
+            const rowMaxCols = r % 2 === 0 ? config.cols : config.cols - 1;
+            for (let c = 0; c < rowMaxCols; c++) {
+                const key = `bubble_${r}_${c}`;
+                if (entities[key]) continue; // Skip filled cells
+
+                // Must be adjacent to existing bubble or at row 0
+                if (!hasFilledNeighbor(r, c)) continue;
+
+                const pos = getGridPosition(r, c, config, SCREEN_WIDTH);
+                const dist = Math.sqrt(Math.pow(finalX - pos.x, 2) + Math.pow(finalY - pos.y, 2));
+
+                if (dist < minDist) {
+                    minDist = dist;
+                    bestRow = r;
+                    bestCol = c;
+                }
+            }
+        }
+
+        // Ultimate fallback: if no adjacent cell found, just use closest empty
+        if (bestRow === -1) {
+            for (let r = 0; r < config.rows; r++) {
+                const rowMaxCols = r % 2 === 0 ? config.cols : config.cols - 1;
+                for (let c = 0; c < rowMaxCols; c++) {
+                    const key = `bubble_${r}_${c}`;
+                    if (!entities[key]) {
+                        const pos = getGridPosition(r, c, config, SCREEN_WIDTH);
+                        const dist = Math.sqrt(Math.pow(finalX - pos.x, 2) + Math.pow(finalY - pos.y, 2));
+                        if (dist < minDist) {
+                            minDist = dist;
+                            bestRow = r;
+                            bestCol = c;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Create animated projectile
+        const projectile = Matter.Bodies.circle(CANNON_X, CANNON_Y, size / 2, {
+            label: 'projectile',
+            isStatic: true,
+            collisionFilter: { category: 0x0004, mask: 0x0000 }
+        });
+        Matter.World.add(engine.world, projectile);
 
         entities.projectile = {
             body: projectile,
             size: size,
             color: colorToShoot,
+            path: path,
+            pathIndex: 0,
+            targetRow: bestRow,
+            targetCol: bestCol,
             renderer: ProjectileRenderer
         };
 
@@ -345,159 +499,25 @@ const GameLogic = (entities: any, { touches, dispatch, events, layout }: any) =>
         dispatch({ type: 'SHOT_FIRED', current: colorToShoot, next: entities.nextColor });
     }
 
-    // Collision & Game Logic
-    if (entities.projectile) {
-        const pBody = entities.projectile.body;
-        const radius = config.bubbleSize / 2;
+    // Animate projectile along path
+    if (entities.projectile && entities.projectile.path) {
+        const proj = entities.projectile;
+        const speed = 1; // Steps per frame (slower animation)
 
-        // Improved Wall Bounce - Elastic but constrained
-        // Native physics covers the movement. We just clamp to be safe.
-        if (pBody.position.x <= radius) {
-            Matter.Body.setPosition(pBody, { x: radius, y: pBody.position.y });
-        } else if (pBody.position.x >= SCREEN_WIDTH - radius) {
-            Matter.Body.setPosition(pBody, { x: SCREEN_WIDTH - radius, y: pBody.position.y });
-        }
+        proj.pathIndex += speed;
 
-        let bestRow = -1;
-        let bestCol = -1;
-        let hit = false;
-
-        // 1. Detect ALL hits (overlapping bubbles)
-        const allBodies = Matter.Composite.allBodies(engine.world);
-        const bubbles = allBodies.filter((b: any) => b.label === 'bubble');
-        const hits: any[] = [];
-
-        for (const b of bubbles) {
-            const dist = Matter.Vector.magnitude(Matter.Vector.sub(pBody.position, b.position));
-            // Check overlap
-            if (dist < config.bubbleSize * 1.05) {
-                hits.push(b);
-            }
-        }
-
-        // Top Wall "Stick"
-        const topWallHit = pBody.position.y <= radius;
-
-        if (hits.length > 0 || topWallHit) {
-            hit = true;
-
-            // Stop physics immediately
-            const x = pBody.position.x;
-            const y = pBody.position.y;
-            const color = entities.projectile.color;
-
-            Matter.Body.setVelocity(pBody, { x: 0, y: 0 });
+        if (proj.pathIndex >= proj.path.length) {
+            // Reached destination - place bubble
+            const pBody = proj.body;
             Matter.World.remove(engine.world, pBody);
+
+            const bestRow = proj.targetRow;
+            const bestCol = proj.targetCol;
+            const colorToShoot = proj.color;
+            const size = proj.size;
+
             delete entities.projectile;
 
-            const size = config.bubbleSize;
-
-            // Strategy: Find all valid empty neighbors of ALL hit bubbles and pick the closest one.
-            if (hits.length > 0) {
-                let minCandidateDist = Infinity;
-
-                hits.forEach(hitBubble => {
-                    if (hitBubble.plugin) {
-                        const { row, col } = hitBubble.plugin;
-                        const neighbors = getNeighbors(row, col);
-
-                        for (const { r, c } of neighbors) {
-                            if (r < 0 || r >= config.rows) continue;
-                            const maxCols = r % 2 === 0 ? config.cols : config.cols - 1;
-                            if (c < 0 || c >= maxCols) continue;
-
-                            const key = `bubble_${r}_${c}`;
-                            // If empty
-                            if (!entities[key]) {
-                                const pos = getGridPosition(r, c, config, SCREEN_WIDTH);
-                                const dist = Math.sqrt(Math.pow(x - pos.x, 2) + Math.pow(y - pos.y, 2));
-
-                                if (dist < minCandidateDist) {
-                                    minCandidateDist = dist;
-                                    bestRow = r;
-                                    bestCol = c;
-                                }
-                            }
-                        }
-                    }
-                });
-            }
-
-            // Fallback 1: If top wall hit OR no valid neighbor found from hits (weird edge case)
-            if (bestRow === -1) {
-                if (topWallHit) {
-                    // Explicit Top Wall Snap
-                    bestRow = 0;
-                    const startX = (SCREEN_WIDTH - config.cols * size) / 2;
-                    // Row 0 is even.
-                    bestCol = Math.round((x - size / 2 - startX) / size);
-                    // Clamp
-                    bestCol = Math.max(0, Math.min(config.cols - 1, bestCol));
-
-                    // Verify spot is empty
-                    if (entities[`bubble_${bestRow}_${bestCol}`]) {
-                        // Occupied? Try neighbors? Or just failsafe to global search.
-                        // If occupied, it means we hit a bubble, not just the wall. 
-                        // But we should have caught that in 'hits'.
-                        // If we are here, 'hits' was empty or failed.
-                        // Let's fallback to global search if this spot is taken.
-                        bestRow = -1;
-                    }
-                }
-
-                // If still -1 (global search needed)
-                if (bestRow === -1) {
-                    // Use global local search mainly for top wall or extreme overlaps
-                    const roughRow = Math.round((y - size / 2) / (size * 0.85));
-                    let minDist = Infinity;
-
-                    for (let r = Math.max(0, roughRow - 1); r <= Math.min(config.rows - 1, roughRow + 1); r++) {
-                        const offset = r % 2 !== 0 ? size / 2 : 0;
-                        const startX = (SCREEN_WIDTH - config.cols * size) / 2;
-                        const roughCol = Math.round((x - size / 2 - offset - startX) / size);
-
-                        for (let c = Math.max(0, roughCol - 1); c <= Math.min(config.cols - 1, roughCol + 1); c++) {
-                            const maxCols = r % 2 === 0 ? config.cols : config.cols - 1;
-                            if (c < 0 || c >= maxCols) continue;
-                            const key = `bubble_${r}_${c}`;
-                            if (!entities[key]) { // Only empty spots
-                                const pos = getGridPosition(r, c, config, SCREEN_WIDTH);
-                                const dist = Math.sqrt(Math.pow(x - pos.x, 2) + Math.pow(y - pos.y, 2));
-                                if (dist < minDist) {
-                                    minDist = dist;
-                                    bestRow = r;
-                                    bestCol = c;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Fallback 2: Global Safety Snap (Level 3)
-            // If even local specific search failed (e.g. projectile went too deep or confusing state),
-            // iterate entire grid to find closest empty spot. This GUARANTEES no disappearance if hit was true.
-            if (bestRow === -1) {
-                let globalMinDist = Infinity;
-
-                for (let r = 0; r < config.rows; r++) {
-                    const maxCols = r % 2 === 0 ? config.cols : config.cols - 1;
-                    for (let c = 0; c < maxCols; c++) {
-                        const key = `bubble_${r}_${c}`;
-                        if (!entities[key]) {
-                            const pos = getGridPosition(r, c, config, SCREEN_WIDTH);
-                            const dist = Math.sqrt(Math.pow(x - pos.x, 2) + Math.pow(y - pos.y, 2));
-                            if (dist < globalMinDist) {
-                                globalMinDist = dist;
-                                bestRow = r;
-                                bestCol = c;
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Valid placement found?
             if (bestRow !== -1) {
                 const pos = getGridPosition(bestRow, bestCol, config, SCREEN_WIDTH);
                 const newBubble = Matter.Bodies.circle(pos.x, pos.y, size / 2, {
@@ -506,53 +526,33 @@ const GameLogic = (entities: any, { touches, dispatch, events, layout }: any) =>
                     restitution: 0,
                     collisionFilter: { category: 0x0001 }
                 });
-                newBubble.plugin = { row: bestRow, col: bestCol, color: color };
+                newBubble.plugin = { row: bestRow, col: bestCol, color: colorToShoot };
                 Matter.World.add(engine.world, newBubble);
 
                 const newKey = `bubble_${bestRow}_${bestCol}`;
                 entities[newKey] = {
                     body: newBubble,
                     size: size,
-                    color: color,
+                    color: colorToShoot,
                     renderer: BubbleRenderer
                 };
 
-                // Matches
+                // Check matches
                 const matches = findMatches(entities, newKey);
                 let points = 0;
                 if (matches.length >= 3) {
                     matches.forEach(key => {
-                        // Trigger Explosion
                         if (!entities[key].isExploding) {
                             entities[key].isExploding = true;
                             entities[key].explodeTime = Date.now();
-                            // Remove from physics world immediately so it doesn't block others
                             Matter.World.remove(engine.world, entities[key].body);
-                            // NOTE: We keep entities[key] and entities[key].body exists so Renderer can see position.
-                            // But since it's removed from World, it won't collide.
                         }
                     });
                     points += matches.length * 10;
 
-                    // Floating logic needs to be careful not to count exploding bubbles as anchors
-                    // We need to re-run findAnchored ignoring exploding ones.
-                    // Actually findAnchored uses bodies in grid. If we removed them from world, 
-                    // findMatches might fail if it relies on physics? 
-                    // findMatches uses `ents[key].body.plugin`. This is fine as long as `ents[key]` exists.
-
-                    // Floating
-                    const anchored = findAnchored(entities); // logic needs check: does it traverse exploiting bubbles?
-                    // findAnchored traverses neighbors. If exploding bubbles are still in `entities`, it might traverse them.
-                    // WE SHOULD NOT TRAVERSE EXPLODING BUBBLES.
-                    // We need to update findAnchored to ignore exploding bubbles.
-                    // Quick fix: findAnchored checks `if (!ents[currentKey]) continue;`
-                    // We can add `if (ents[currentKey].isExploding) continue;`
-
+                    const anchored = findAnchored(entities);
                     Object.keys(entities).forEach(key => {
                         if (key.startsWith('bubble_') && !anchored.has(key) && !entities[key].isExploding) {
-                            // Float / Drop these too
-                            // For now, just explode them as well for simplicity, or drop them.
-                            // User asked for "explosion effect". Let's explode them too.
                             entities[key].isExploding = true;
                             entities[key].explodeTime = Date.now();
                             Matter.World.remove(engine.world, entities[key].body);
@@ -565,7 +565,6 @@ const GameLogic = (entities: any, { touches, dispatch, events, layout }: any) =>
                     dispatch({ type: 'SCORE_UPDATE', points });
                 }
 
-                // Game Over / Win
                 if (bestRow >= config.rows - 1) {
                     dispatch({ type: 'GAME_OVER' });
                 } else {
@@ -574,12 +573,16 @@ const GameLogic = (entities: any, { touches, dispatch, events, layout }: any) =>
                         dispatch({ type: 'WIN' });
                     }
                 }
-            } else {
-                // Should not happen if logic is correct, but safe cleanup if something fails catastrophically
-                // The projectile was already deleted.
             }
+        } else {
+            // Move along path
+            const point = proj.path[Math.min(proj.pathIndex, proj.path.length - 1)];
+            Matter.Body.setPosition(proj.body, { x: point.x, y: point.y });
         }
     }
+
+
+    // Note: Old physics-based projectile code removed - now using instant raycast
 
     // Cleanup Exploding Bubbles
     Object.keys(entities).forEach(key => {
@@ -630,15 +633,16 @@ export default function BubbleShooterGame({ onComplete, ageGroup }: BubbleShoote
         setCurrentBallColor(startColor);
         setNextBallColor(nextColor);
 
+        const size = config.bubbleSize;
+
         // Initial Bubbles
         const entities: any = {
             physics: { engine: engine },
             config: config,
-            aim: { angle: 0, startX: CANNON_X, startY: CANNON_Y, layout: { width, height }, renderer: AimLineRenderer },
+            aim: { angle: 0, startX: CANNON_X, startY: CANNON_Y, layout: { width, height }, bubbleSize: size, renderer: AimLineRenderer },
             nextColor: startColor, // This is actually the CURRENT ball color in logic
         };
 
-        const size = config.bubbleSize;
         // Fill top 1/3
         for (let r = 0; r < Math.floor(config.rows / 3); r++) {
             for (let c = 0; c < (r % 2 === 0 ? config.cols : config.cols - 1); c++) {
