@@ -95,16 +95,24 @@ Deno.serve(async (req: Request) => {
         updated_at: new Date().toISOString(),
       };
 
-      // Always update score if provided
+      // High Score Logic: Only update score if new score is higher
       if (score !== undefined) {
-        updateData.score = score;
+        if (!existingProgress.score || score > existingProgress.score) {
+          updateData.score = score;
+        }
       }
 
-      // First completion - add game's base points to user's total
-      if (completed && !existingProgress.completed) {
+      // UNLIMITED GRIND LOGIC:
+      // Always mark as completed if it is completed
+      if (completed) {
         updateData.completed = true;
+
+        // Always increment completed games count for the user stats
         completedGamesToAdd = 1;
-        pointsToAdd = gameBasePoints; // Use game's points value, not player score
+
+        // Always add FULL game base points AND the Game Score to the user stats
+        // This allows users to "farm" points and climb leaderboards based on SKILL (Score) + EFFORT (Base Points)
+        pointsToAdd = gameBasePoints + (score || 0);
       }
 
       if (time_spent !== undefined) {
@@ -184,7 +192,12 @@ Deno.serve(async (req: Request) => {
     }
 
     return new Response(
-      JSON.stringify({ success: true, progress: result }),
+      JSON.stringify({
+        success: true,
+        progress: result,
+        new_total_points: pointsToAdd > 0 ? (userData?.total_points || 0) + pointsToAdd : undefined,
+        new_completed_games_count: completedGamesToAdd > 0 ? (userData?.completed_games_count || 0) + completedGamesToAdd : undefined
+      }),
       {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

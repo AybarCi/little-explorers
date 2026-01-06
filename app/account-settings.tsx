@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { ArrowLeft, LogOut, Trash2 } from 'lucide-react-native';
 import { useAppDispatch } from '@/hooks/useAppDispatch';
 import { signout, deleteAccount } from '@/store/slices/authSlice';
+import { resetCurrency, clearCurrencyFromStorage } from '@/store/slices/currencySlice';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/constants/colors';
 
@@ -21,7 +22,11 @@ export default function AccountSettingsScreen() {
                 {
                     text: 'Çıkış Yap',
                     style: 'destructive',
-                    onPress: () => dispatch(signout())
+                    onPress: async () => {
+                        await clearCurrencyFromStorage();
+                        dispatch(resetCurrency());
+                        dispatch(signout());
+                    }
                 },
             ]
         );

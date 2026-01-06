@@ -45,6 +45,8 @@ interface SaveProgressResponse {
     created_at: string;
     updated_at: string;
   };
+  new_total_points?: number;
+  new_completed_games_count?: number;
   error?: string;
 }
 
@@ -188,7 +190,8 @@ export const saveGameProgress = createAsyncThunk(
         return rejectWithValue(data.error || 'Failed to save progress');
       }
 
-      return data.progress;
+      // Return the full data object so we can access new_total_points if available
+      return data;
     } catch (error) {
       return rejectWithValue(
         error instanceof Error ? error.message : 'Failed to save progress'
@@ -291,7 +294,8 @@ const gamesSlice = createSlice({
       .addCase(saveGameProgress.fulfilled, (state, action) => {
         state.loading = false;
         // Store'daki ilgili oyunun user_progress verisini güncelle
-        const updatedProgress = action.payload;
+        // Payload is now the full response object, so access .progress
+        const updatedProgress = action.payload.progress;
         const gameIndex = state.games.findIndex(game => game.id === updatedProgress.game_id);
         if (gameIndex !== -1) {
           state.games[gameIndex] = {

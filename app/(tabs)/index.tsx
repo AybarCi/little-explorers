@@ -14,7 +14,7 @@ import { Trophy, Zap, Diamond, Gamepad2, BarChart3, Target, User, CheckCircle } 
 import { useAppSelector } from '@/hooks/useAppSelector';
 import { useAppDispatch } from '@/hooks/useAppDispatch';
 import { fetchGames } from '@/store/slices/gamesSlice';
-import { initializeCurrency, regenerateEnergy, loadCurrencyFromStorage, CURRENCY_CONSTANTS } from '@/store/slices/currencySlice';
+import { initializeCurrency, regenerateEnergy, loadCurrencyFromStorage, saveCurrencyToStorage, CURRENCY_CONSTANTS } from '@/store/slices/currencySlice';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/constants/colors';
 import EnergyModal from '@/components/EnergyModal';
@@ -34,10 +34,46 @@ export default function HomeScreen() {
   const [showEnergyModal, setShowEnergyModal] = useState(false);
   const [showDiamondModal, setShowDiamondModal] = useState(false);
 
-  // Initialize currency from storage
+  // Initialize currency from database (user object) or storage
   useEffect(() => {
     const initCurrency = async () => {
+      console.log('initCurrency called, user:', user?.id, 'isInitialized:', isInitialized);
+      console.log('User energy:', (user as any)?.energy, 'User diamonds:', (user as any)?.diamonds);
+
+      // If user is logged in and has database values, use them
+      if (user) {
+        const hasDbEnergy = (user as any).energy !== undefined && (user as any).energy !== null;
+        const hasDbDiamonds = (user as any).diamonds !== undefined && (user as any).diamonds !== null;
+
+        console.log('hasDbEnergy:', hasDbEnergy, 'hasDbDiamonds:', hasDbDiamonds);
+
+        // Use database values if available
+        if (hasDbEnergy || hasDbDiamonds) {
+          const dbEnergy = hasDbEnergy ? (user as any).energy : CURRENCY_CONSTANTS.MAX_ENERGY;
+          const dbDiamonds = hasDbDiamonds ? (user as any).diamonds : 0;
+          const dbLastEnergyUpdate = (user as any).last_energy_update ?? Date.now();
+
+          console.log('Using DB values - energy:', dbEnergy, 'diamonds:', dbDiamonds);
+
+          dispatch(initializeCurrency({
+            energy: dbEnergy,
+            diamonds: dbDiamonds,
+            lastEnergyUpdate: dbLastEnergyUpdate,
+          }));
+
+          // Also update local storage with database values for offline access
+          saveCurrencyToStorage({
+            energy: dbEnergy,
+            diamonds: dbDiamonds,
+            lastEnergyUpdate: dbLastEnergyUpdate,
+          });
+          return;
+        }
+      }
+
+      // Fallback to AsyncStorage if user data not available
       const saved = await loadCurrencyFromStorage();
+      console.log('Loaded from AsyncStorage:', saved);
       if (saved) {
         dispatch(initializeCurrency(saved));
       } else {
@@ -48,10 +84,12 @@ export default function HomeScreen() {
         }));
       }
     };
-    if (!isInitialized) {
+
+    // Always re-initialize when user changes (login/logout)
+    if (!isInitialized || user) {
       initCurrency();
     }
-  }, [isInitialized]);
+  }, [isInitialized, user?.id]);
 
   // Energy regeneration timer
   useEffect(() => {

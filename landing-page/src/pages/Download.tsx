@@ -35,7 +35,7 @@ export default function Download() {
               </div>
               <h3>App Store</h3>
               <p>iPhone ve iPad için</p>
-              <a href="https://apps.apple.com" className="download-btn ios">
+              <a href="https://apps.apple.com/tr/app/k%C3%BC%C3%A7%C3%BCk-ka%C5%9Fif/id6756079724?l=tr" target="_blank" rel="noopener noreferrer" className="download-btn ios">
                 <span>App Store'dan İndir</span>
               </a>
               <span className="requirement">iOS 13.0+</span>
@@ -51,7 +51,7 @@ export default function Download() {
               </div>
               <h3>Google Play</h3>
               <p>Android cihazlar için</p>
-              <a href="https://play.google.com" className="download-btn android">
+              <a href="https://play.google.com/store/apps/details?id=com.uzay.kasifi&hl=tr" target="_blank" rel="noopener noreferrer" className="download-btn android">
                 <span>Google Play'den İndir</span>
               </a>
               <span className="requirement">Android 8.0+</span>

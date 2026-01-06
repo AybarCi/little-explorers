@@ -13,8 +13,8 @@ import { ArrowLeft, Trophy, Zap } from 'lucide-react-native';
 import { useAppSelector } from '@/hooks/useAppSelector';
 import { useAppDispatch } from '@/hooks/useAppDispatch';
 import { fetchGames, saveGameProgress, fetchUserProgress } from '@/store/slices/gamesSlice';
-import { ensureValidSession, refreshSession, updateUserStats } from '@/store/slices/authSlice';
-import { consumeEnergy, saveCurrencyToStorage } from '@/store/slices/currencySlice';
+import { ensureValidSession, refreshSession, setUserTotalPoints } from '@/store/slices/authSlice';
+import { consumeEnergy, saveCurrencyToStorage, saveEnergyToDatabase } from '@/store/slices/currencySlice';
 import { Game } from '@/types/game';
 import { AuthSession } from '@/types/auth';
 import MathGame from '@/components/games/MathGame';
@@ -66,13 +66,22 @@ export default function PlayGameScreen() {
   useEffect(() => {
     if (game && !energyConsumed && !loading) {
       if (energy > 0) {
+        const newEnergy = energy - 1;
         dispatch(consumeEnergy());
-        // Save to storage
+        // Save to local storage
         saveCurrencyToStorage({
-          energy: energy - 1,
+          energy: newEnergy,
           diamonds,
           lastEnergyUpdate,
         });
+        // Sync to database for cross-device persistence
+        if (user?.id) {
+          dispatch(saveEnergyToDatabase({
+            userId: user.id,
+            energy: newEnergy,
+            lastEnergyUpdate,
+          }));
+        }
         setEnergyConsumed(true);
       } else {
         setShowNoEnergyModal(true);
@@ -183,15 +192,19 @@ export default function PlayGameScreen() {
 
       console.log('SaveGameProgress response payload:', progressResult);
 
-      // 2. Kullanıcı istatistiklerini güncelle - oyunun tanımlı puanını kullan
-      dispatch(updateUserStats({
-        points: game.points,
-        completedGames: 1
-      }));
+      // 2. Kullanıcı istatistiklerini güncelle - backend'den gelen güncel değeri kullan
+      if (typeof progressResult.new_total_points === 'number') {
+        console.log('Updating total points from backend:', progressResult.new_total_points);
+        dispatch(setUserTotalPoints(progressResult.new_total_points));
+      } else {
+        console.log('No new points awarded (game likely already completed)');
+      }
 
       // 3. Store'u güncelle - böylece tüm ekranlar güncel kalır
       if (user?.id) {
         dispatch(fetchGames({ userId: user.id }));
+        // fetchUserProgress removed as it might be redundant if we just set the points locally
+        // but keeping it doesn't hurt
         dispatch(fetchUserProgress({ userId: user.id }));
       }
 

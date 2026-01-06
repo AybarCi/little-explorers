@@ -26,13 +26,14 @@ export default function Navbar() {
 
   return (
     <>
-      <nav style={{
+      <nav className="nav" style={{
         ...styles.nav,
         ...(isScrolled ? styles.navScrolled : {}),
       }}>
-        <div style={styles.container}>
+        <div className="container" style={styles.container}>
           <Link
             to="/"
+            className="logo"
             style={styles.logo}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'scale(1.05)';
@@ -41,8 +42,8 @@ export default function Navbar() {
               e.currentTarget.style.transform = 'scale(1)';
             }}
           >
-            <img src={logo} alt="Küçük Kaşif Logo" style={styles.logoImage} />
-            <span style={{
+            <img src={logo} alt="Küçük Kaşif Logo" className="logoImage" style={styles.logoImage} />
+            <span className="logoText" style={{
               ...styles.logoText,
               color: Colors.pureWhite,
               fontWeight: '900',
@@ -50,11 +51,12 @@ export default function Navbar() {
             }}>🌟 Küçük Kaşif 🌟</span>
           </Link>
 
-          <div style={styles.desktopLinks}>
+          <div className="desktopLinks" style={styles.desktopLinks}>
             {navItems.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
+                className="link"
                 style={{
                   ...styles.link,
                   ...(location.pathname === item.path ? styles.linkActive : {})
@@ -66,6 +68,7 @@ export default function Navbar() {
           </div>
 
           <button
+            className="mobileMenuButton"
             style={styles.mobileMenuButton}
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-label="Menüyü aç"
@@ -86,7 +89,7 @@ export default function Navbar() {
         </div>
 
         {/* Mobile Menu */}
-        <div style={{
+        <div className="mobileMenu" style={{
           ...styles.mobileMenu,
           transform: isMenuOpen ? 'translateY(0)' : 'translateY(-100%)',
           opacity: isMenuOpen ? 1 : 0
@@ -96,6 +99,7 @@ export default function Navbar() {
               <Link
                 key={item.path}
                 to={item.path}
+                className="mobileLink"
                 style={styles.mobileLink}
                 onClick={() => setIsMenuOpen(false)}
               >
@@ -191,15 +195,18 @@ const styles: Record<string, React.CSSProperties> = {
     background: 'none',
     border: 'none',
     cursor: 'pointer',
-    padding: '0.5rem',
+    padding: '0.75rem',
     flexDirection: 'column',
-    gap: '4px',
+    gap: '5px',
+    zIndex: 1001,
+    position: 'relative',
   },
   hamburgerLine: {
-    width: '25px',
-    height: '2px',
-    backgroundColor: Colors.spacePurple,
+    width: '28px',
+    height: '3px',
+    backgroundColor: '#FFFFFF',
     transition: 'all 0.3s ease',
+    borderRadius: '2px',
   },
   mobileMenu: {
     display: 'none',
@@ -207,11 +214,11 @@ const styles: Record<string, React.CSSProperties> = {
     top: '100%',
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(255, 255, 255, 0.98)',
-    backdropFilter: 'blur(20px)',
-    WebkitBackdropFilter: 'blur(20px)',
+    backgroundColor: '#FFFFFF',
+    boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
     borderTop: '1px solid rgba(65, 49, 122, 0.1)',
     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+    zIndex: 1000,
   },
   mobileMenuContainer: {
     padding: '2rem',

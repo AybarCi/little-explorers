@@ -11,7 +11,8 @@ import {
 import { X, Diamond, Play } from 'lucide-react-native';
 import { useAppSelector } from '@/hooks/useAppSelector';
 import { useAppDispatch } from '@/hooks/useAppDispatch';
-import { addDiamonds, CURRENCY_CONSTANTS, saveCurrencyToStorage } from '@/store/slices/currencySlice';
+import { addDiamonds, CURRENCY_CONSTANTS, saveCurrencyToStorage, saveDiamondsToDatabase } from '@/store/slices/currencySlice';
+import { updateUserDiamonds } from '@/store/slices/authSlice';
 import { loadRewardedAd, showRewardedAd, isRewardedAdReady } from '@/utils/ads';
 import { Colors } from '@/constants/colors';
 import { useResponsive } from '@/utils/responsive';
@@ -24,6 +25,7 @@ interface DiamondModalProps {
 export default function DiamondModal({ visible, onClose }: DiamondModalProps) {
     const dispatch = useAppDispatch();
     const { diamonds, energy, lastEnergyUpdate } = useAppSelector((state) => state.currency);
+    const user = useAppSelector((state) => state.auth.user);
     const [isLoading, setIsLoading] = useState(false);
     const [message, setMessage] = useState('');
     const { getModalMaxWidth, isTablet } = useResponsive();
@@ -41,13 +43,22 @@ export default function DiamondModal({ visible, onClose }: DiamondModalProps) {
 
             showRewardedAd(
                 async () => {
+                    const newDiamonds = diamonds + AD_REWARD_DIAMONDS;
                     dispatch(addDiamonds(AD_REWARD_DIAMONDS));
                     const newState = {
                         energy,
-                        diamonds: diamonds + AD_REWARD_DIAMONDS,
+                        diamonds: newDiamonds,
                         lastEnergyUpdate,
                     };
                     await saveCurrencyToStorage(newState);
+
+                    // Sync to database for cross-device persistence
+                    if (user?.id) {
+                        dispatch(saveDiamondsToDatabase({ userId: user.id, diamonds: newDiamonds }));
+                        // Also update user object in authSlice to keep it in sync
+                        dispatch(updateUserDiamonds(newDiamonds));
+                    }
+
                     setMessage(`🎉 ${AD_REWARD_DIAMONDS} elmas kazandın!`);
                     setIsLoading(false);
                 },

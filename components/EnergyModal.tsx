@@ -10,7 +10,8 @@ import {
 import { X, Zap, Clock, Diamond } from 'lucide-react-native';
 import { useAppSelector } from '@/hooks/useAppSelector';
 import { useAppDispatch } from '@/hooks/useAppDispatch';
-import { refillEnergyWithDiamonds, CURRENCY_CONSTANTS, saveCurrencyToStorage } from '@/store/slices/currencySlice';
+import { refillEnergyWithDiamonds, CURRENCY_CONSTANTS, saveCurrencyToStorage, saveDiamondsToDatabase, saveEnergyToDatabase } from '@/store/slices/currencySlice';
+import { updateUserDiamonds } from '@/store/slices/authSlice';
 import { Colors } from '@/constants/colors';
 import { useResponsive } from '@/utils/responsive';
 
@@ -23,6 +24,7 @@ interface EnergyModalProps {
 export default function EnergyModal({ visible, onClose, onWatchAd }: EnergyModalProps) {
     const dispatch = useAppDispatch();
     const { energy, diamonds, lastEnergyUpdate } = useAppSelector((state) => state.currency);
+    const user = useAppSelector((state) => state.auth.user);
     const [countdown, setCountdown] = useState('');
     const { getModalMaxWidth, isTablet, scale } = useResponsive();
 
@@ -50,13 +52,24 @@ export default function EnergyModal({ visible, onClose, onWatchAd }: EnergyModal
 
     const handleRefillWithDiamonds = async () => {
         if (diamonds >= ENERGY_REFILL_COST) {
+            const newDiamonds = diamonds - ENERGY_REFILL_COST;
+            const newLastEnergyUpdate = Date.now();
             dispatch(refillEnergyWithDiamonds());
             const newState = {
                 energy: MAX_ENERGY,
-                diamonds: diamonds - ENERGY_REFILL_COST,
-                lastEnergyUpdate: Date.now(),
+                diamonds: newDiamonds,
+                lastEnergyUpdate: newLastEnergyUpdate,
             };
             await saveCurrencyToStorage(newState);
+
+            // Sync to database for cross-device persistence
+            if (user?.id) {
+                dispatch(saveDiamondsToDatabase({ userId: user.id, diamonds: newDiamonds }));
+                dispatch(saveEnergyToDatabase({ userId: user.id, energy: MAX_ENERGY, lastEnergyUpdate: newLastEnergyUpdate }));
+                // Also update user object in authSlice to keep it in sync
+                dispatch(updateUserDiamonds(newDiamonds));
+            }
+
             onClose();
         }
     };
