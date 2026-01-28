@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     View,
     Text,
@@ -7,6 +7,8 @@ import {
     TouchableOpacity,
     Alert,
     Modal,
+    ActivityIndicator,
+    Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, Diamond, Sparkles, Gift, Star, X, FileText, Shield } from 'lucide-react-native';
@@ -17,32 +19,34 @@ import { saveUserDiamonds } from '@/store/slices/authSlice';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/constants/colors';
 
-// Mock data for diamond packages
-const DIAMOND_PACKAGES = [
-    {
-        id: '100_diamonds',
-        diamonds: 100,
-        price: '₺49,99',
-        title: '100 Elmas',
-        icon: 'small' as const,
-    },
-    {
-        id: '500_diamonds',
-        diamonds: 500,
-        price: '₺149,99',
-        title: '500 Elmas',
-        icon: 'medium' as const,
-        popular: true,
-    },
-    {
-        id: '1000_diamonds',
-        diamonds: 1000,
-        price: '₺299,99',
-        title: '1000 Elmas',
-        icon: 'large' as const,
-        bestValue: true,
-    },
-];
+// --- SAFE IAP HOOK IMPORT ---
+let useIAP: any = null;
+let iapAvailable = false;
+
+try {
+    const iapModule = require('react-native-iap');
+    if (iapModule && typeof iapModule.useIAP === 'function') {
+        useIAP = iapModule.useIAP;
+        iapAvailable = true;
+        console.log('[DiamondPurchase] react-native-iap useIAP hook loaded successfully.');
+    } else {
+        console.warn('[DiamondPurchase] react-native-iap loaded but useIAP hook not found.');
+    }
+} catch (e) {
+    console.warn('[DiamondPurchase] react-native-iap could not be required.', e);
+    iapAvailable = false;
+}
+// ------------------------------------
+
+// Product IDs - must match App Store Connect / Google Play Console
+const diamondSkus = ['100_diamonds', '500_diamonds', '1000_diamonds'];
+
+// Map product IDs to diamond amounts
+const PRODUCT_DIAMOND_MAP: Record<string, number> = {
+    '100_diamonds': 100,
+    '500_diamonds': 500,
+    '1000_diamonds': 1000,
+};
 
 const PACKAGE_ICONS = {
     small: { icon: Diamond, color: '#60A5FA', bg: '#DBEAFE' },
@@ -50,7 +54,45 @@ const PACKAGE_ICONS = {
     large: { icon: Gift, color: '#8B5CF6', bg: '#EDE9FE' },
 };
 
-export default function DiamondPurchaseScreen() {
+// Fallback component when IAP is not available
+const IAPUnavailableScreen = ({ diamonds, onBack }: { diamonds: number; onBack: () => void }) => (
+    <View style={styles.container}>
+        <LinearGradient
+            colors={['#3B82F6', '#8B5CF6']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.headerGradient}
+        >
+            <TouchableOpacity style={styles.backButton} onPress={onBack}>
+                <ArrowLeft size={24} color="#FFF" />
+            </TouchableOpacity>
+            <View style={styles.headerContent}>
+                <Sparkles size={32} color="#FFF" />
+                <Text style={styles.headerTitle}>Elmas Mağazası</Text>
+            </View>
+            <View style={styles.balanceContainer}>
+                <Diamond size={24} color="#FFF" fill="#FFF" />
+                <Text style={styles.balanceText}>{diamonds}</Text>
+                <Text style={styles.balanceLabel}>Mevcut Bakiye</Text>
+            </View>
+        </LinearGradient>
+
+        <View style={{ padding: 20, alignItems: 'center', flex: 1, justifyContent: 'center' }}>
+            <View style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', padding: 20, borderRadius: 16, alignItems: 'center' }}>
+                <Text style={{ color: '#EF4444', fontSize: 18, fontWeight: 'bold', marginBottom: 8 }}>
+                    ⚠ IAP Modülü Yok
+                </Text>
+                <Text style={{ color: '#666', textAlign: 'center', fontSize: 14 }}>
+                    Expo Go veya native modülü içermeyen bir sürüm kullanıyorsunuz.{'\n'}
+                    Satın alma işlemleri production build'de aktif olacak.
+                </Text>
+            </View>
+        </View>
+    </View>
+);
+
+// Main component that uses the hook
+const DiamondPurchaseWithIAP = () => {
     const router = useRouter();
     const dispatch = useAppDispatch();
     const { diamonds, energy, lastEnergyUpdate } = useAppSelector((state) => state.currency);
@@ -58,63 +100,196 @@ export default function DiamondPurchaseScreen() {
 
     const [showTermsModal, setShowTermsModal] = useState(false);
     const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+    const [isPurchasing, setIsPurchasing] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
 
-    const handlePurchase = async (pkg: typeof DIAMOND_PACKAGES[0]) => {
-        // In production, this would trigger real IAP
-        Alert.alert(
-            'Satın Alma',
-            `${pkg.title} (${pkg.price}) satın almak istiyor musunuz?`,
-            [
-                { text: 'İptal', style: 'cancel' },
-                {
-                    text: 'Satın Al',
-                    onPress: async () => {
-                        // Mock purchase success
-                        const newDiamonds = diamonds + pkg.diamonds;
-                        dispatch(addDiamonds(pkg.diamonds));
+    // Track processed transactions to prevent duplicates
+    const processedTransactions = useRef(new Set<string>());
 
-                        await saveCurrencyToStorage({
-                            energy,
-                            diamonds: newDiamonds,
-                            lastEnergyUpdate,
-                        });
+    // v14 useIAP hook
+    const {
+        connected,
+        products,
+        currentPurchase,
+        fetchProducts,
+        requestPurchase,
+        finishTransaction,
+    } = useIAP({
+        onPurchaseSuccess: async (purchase: any) => {
+            console.log('[DiamondPurchase] Purchase Success:', purchase.productId);
 
-                        if (user?.id) {
-                            // Await the database save to ensure persistence
-                            try {
-                                await dispatch(saveDiamondsToDatabase({ userId: user.id, diamonds: newDiamonds })).unwrap();
-                                console.log('Diamonds saved to database successfully:', newDiamonds);
-                            } catch (dbError) {
-                                console.error('Failed to save diamonds to database:', dbError);
-                            }
-                            // Persist to SecureStore for app restart
-                            await dispatch(saveUserDiamonds(newDiamonds)).unwrap();
-                        }
+            // Prevent duplicate processing
+            const txId = purchase.transactionId || purchase.originalTransactionIdentifier || purchase.purchaseToken;
+            if (processedTransactions.current.has(txId)) {
+                console.log('[DiamondPurchase] Transaction already processed, skipping:', txId);
+                return;
+            }
+            processedTransactions.current.add(txId);
 
-                        Alert.alert('🎉 Satın Alma Başarılı!', `${pkg.diamonds} elmas hesabına eklendi!`);
-                    },
+            try {
+                await finishTransaction({ purchase, isConsumable: true });
+                console.log('[DiamondPurchase] Transaction finished successfully');
+            } catch (ackErr) {
+                console.warn('[DiamondPurchase] finishTransaction error:', ackErr);
+            }
+
+            // Add diamonds to user account
+            const diamondAmount = PRODUCT_DIAMOND_MAP[purchase.productId] || 0;
+            const newDiamonds = diamonds + diamondAmount;
+
+            dispatch(addDiamonds(diamondAmount));
+
+            await saveCurrencyToStorage({
+                energy,
+                diamonds: newDiamonds,
+                lastEnergyUpdate,
+            });
+
+            if (user?.id) {
+                try {
+                    await dispatch(saveDiamondsToDatabase({ userId: user.id, diamonds: newDiamonds })).unwrap();
+                    await dispatch(saveUserDiamonds(newDiamonds)).unwrap();
+                } catch (dbError) {
+                    console.error('Failed to save diamonds to database:', dbError);
+                }
+            }
+
+            setIsPurchasing(false);
+            Alert.alert('🎉 Başarılı!', `${diamondAmount} elmas hesabına eklendi!`);
+        },
+        onPurchaseError: (error: any) => {
+            console.warn('[DiamondPurchase] Purchase Error:', error);
+            setIsPurchasing(false);
+
+            // Ignore user cancellation
+            if (error.responseCode === '2' || error.code === 'E_USER_CANCELLED') {
+                return;
+            }
+
+            Alert.alert('Hata', `Satın alma başarısız: ${error.message || 'Bilinmeyen hata'}`);
+        },
+    });
+
+    // Auto-finish pending transactions on mount
+    useEffect(() => {
+        const clearPendingPurchases = async () => {
+            if (currentPurchase) {
+                console.log('[DiamondPurchase] Found pending purchase on mount, finishing:', currentPurchase.productId);
+                try {
+                    await finishTransaction({ purchase: currentPurchase, isConsumable: true });
+                    console.log('[DiamondPurchase] Cleared pending purchase');
+                } catch (e) {
+                    console.warn('[DiamondPurchase] Error clearing pending purchase:', e);
+                }
+            }
+        };
+        clearPendingPurchases();
+    }, [currentPurchase, finishTransaction]);
+
+    // Fetch products when connected
+    useEffect(() => {
+        if (!connected) {
+            console.log('[DiamondPurchase] Not connected yet, waiting...');
+            return;
+        }
+
+        console.log('[DiamondPurchase] Connected! Fetching products...');
+
+        // Fetch consumables (type: 'in-app')
+        fetchProducts({ skus: diamondSkus, type: 'in-app' });
+
+        // Loading complete after a short delay
+        setTimeout(() => setIsLoading(false), 1000);
+    }, [connected, fetchProducts]);
+
+    // Debug: Log when products update
+    useEffect(() => {
+        console.log('[DiamondPurchase] Products updated:', products?.length);
+        if (products?.length > 0) {
+            console.log('[DiamondPurchase] Product IDs:', products.map((p: any) => p.productId || p.id).join(', '));
+        }
+    }, [products]);
+
+    const handleBuy = async (productId: string) => {
+        if (isPurchasing) return;
+
+        setIsPurchasing(true);
+
+        try {
+            console.log('[DiamondPurchase] Requesting purchase for:', productId);
+
+            requestPurchase({
+                request: {
+                    apple: { sku: productId },
+                    google: { skus: [productId] },
                 },
-            ]
-        );
+                type: 'in-app',
+            });
+        } catch (err: any) {
+            console.error('[DiamondPurchase] Buy Error:', err);
+            setIsPurchasing(false);
+            Alert.alert('Hata', err.message || 'Satın alma başlatılamadı');
+        }
     };
+
+    const getProductIcon = (productId: string) => {
+        if (productId.includes('100')) return 'small';
+        if (productId.includes('500')) return 'medium';
+        return 'large';
+    };
+
+    const isRealProducts = products && products.length > 0;
+
+    if (isLoading) {
+        return (
+            <View style={styles.container}>
+                <LinearGradient
+                    colors={['#3B82F6', '#8B5CF6']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.headerGradient}
+                >
+                    <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+                        <ArrowLeft size={24} color="#FFF" />
+                    </TouchableOpacity>
+                    <View style={styles.headerContent}>
+                        <Sparkles size={32} color="#FFF" />
+                        <Text style={styles.headerTitle}>Elmas Mağazası</Text>
+                    </View>
+                </LinearGradient>
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                    <ActivityIndicator size="large" color={Colors.primary} />
+                    <Text style={{ color: '#666', marginTop: 16 }}>
+                        {connected ? 'Ürünler yükleniyor...' : 'Mağazaya bağlanılıyor...'}
+                    </Text>
+                </View>
+            </View>
+        );
+    }
 
     return (
         <View style={styles.container}>
+            {isPurchasing && (
+                <View style={styles.loadingOverlay}>
+                    <ActivityIndicator size="large" color="#FFF" />
+                    <Text style={{ color: '#FFF', marginTop: 16 }}>İşlem yapılıyor...</Text>
+                </View>
+            )}
+
             <LinearGradient
                 colors={['#3B82F6', '#8B5CF6']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={styles.headerGradient}
             >
-                <View style={styles.headerRow}>
-                    <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                        <ArrowLeft size={24} color="#FFF" />
-                    </TouchableOpacity>
-                    <View style={styles.headerCenter}>
-                        <Sparkles size={28} color="#FFF" />
-                        <Text style={styles.title}>Elmas Satın Al</Text>
-                    </View>
-                    <View style={{ width: 40 }} />
+                <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+                    <ArrowLeft size={24} color="#FFF" />
+                </TouchableOpacity>
+
+                <View style={styles.headerContent}>
+                    <Sparkles size={32} color="#FFF" />
+                    <Text style={styles.headerTitle}>Elmas Mağazası</Text>
+                    <Text style={styles.headerSubtitle}>Elmas satın al, premium içeriklerin kilidini aç!</Text>
                 </View>
 
                 <View style={styles.balanceContainer}>
@@ -127,98 +302,106 @@ export default function DiamondPurchaseScreen() {
             <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
                 <Text style={styles.sectionTitle}>💎 Elmas Paketleri</Text>
 
-                {DIAMOND_PACKAGES.map((pkg) => {
-                    const IconConfig = PACKAGE_ICONS[pkg.icon];
-                    const IconComponent = IconConfig.icon;
-
-                    return (
-                        <TouchableOpacity
-                            key={pkg.id}
-                            style={[
-                                styles.packageCard,
-                                pkg.popular && styles.popularCard,
-                                pkg.bestValue && styles.bestValueCard,
-                            ]}
-                            onPress={() => handlePurchase(pkg)}
-                        >
-                            {pkg.popular && (
-                                <View style={styles.badge}>
-                                    <Text style={styles.badgeText}>Popüler</Text>
-                                </View>
-                            )}
-                            {pkg.bestValue && (
-                                <View style={[styles.badge, styles.bestValueBadge]}>
-                                    <Text style={styles.badgeText}>En İyi Değer</Text>
-                                </View>
-                            )}
-
-                            <View style={[styles.iconContainer, { backgroundColor: IconConfig.bg }]}>
-                                <IconComponent size={32} color={IconConfig.color} fill={IconConfig.color} />
-                            </View>
-
-                            <View style={styles.packageInfo}>
-                                <Text style={styles.packageTitle}>{pkg.title}</Text>
-                                <View style={styles.diamondRow}>
-                                    <Diamond size={16} color="#60A5FA" fill="#60A5FA" />
-                                    <Text style={styles.diamondAmount}>+{pkg.diamonds}</Text>
-                                </View>
-                            </View>
-
-                            <View style={styles.priceContainer}>
-                                <Text style={styles.priceText}>{pkg.price}</Text>
-                            </View>
-                        </TouchableOpacity>
-                    );
-                })}
-
-                <View style={styles.infoBox}>
-                    <Text style={styles.infoTitle}>ℹ️ Bilgi</Text>
-                    <Text style={styles.infoText}>
-                        • Elmaslar oyun içi satın almalar için kullanılır.{'\n'}
-                        • Enerji dolumu ve premium öğeler için kullanabilirsin.{'\n'}
-                        • Satın alımlar Apple/Google hesabından tahsil edilir.
+                {/* <View style={{ backgroundColor: isRealProducts ? '#22C55E' : '#EF4444', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, marginBottom: 16, alignSelf: 'flex-start' }}>
+                    <Text style={{ color: '#FFF', fontSize: 12, fontWeight: '600' }}>
+                        {isRealProducts ? `✓ App Store Ürünleri (${products.length})` : '⚠ Ürün Bulunamadı'}
                     </Text>
-                </View>
+                </View> */}
 
-                {/* Terms and Privacy Links */}
+                {!isRealProducts ? (
+                    <View style={{ padding: 20, alignItems: 'center', backgroundColor: '#FEF2F2', borderRadius: 16 }}>
+                        <Text style={{ color: '#991B1B', fontSize: 16, fontWeight: 'bold', marginBottom: 8 }}>
+                            Ürünler Yüklenemedi
+                        </Text>
+                        <Text style={{ color: '#7F1D1D', textAlign: 'center', fontSize: 13 }}>
+                            App Store Connect'te ürünlerin "Ready to Submit" veya "Approved" durumunda olduğundan emin olun.
+                        </Text>
+                    </View>
+                ) : (
+                    products.map((product: any) => {
+                        const productId = product.productId || product.id;
+                        const iconType = getProductIcon(productId);
+                        const IconConfig = PACKAGE_ICONS[iconType];
+                        const IconComponent = IconConfig.icon;
+                        const diamondAmount = PRODUCT_DIAMOND_MAP[productId] || 0;
+
+                        return (
+                            <TouchableOpacity
+                                key={productId}
+                                style={[
+                                    styles.packageCard,
+                                    productId.includes('500') && styles.popularCard,
+                                    productId.includes('1000') && styles.bestValueCard,
+                                ]}
+                                onPress={() => handleBuy(productId)}
+                            >
+                                {productId.includes('500') && (
+                                    <View style={styles.badge}>
+                                        <Text style={styles.badgeText}>Popüler</Text>
+                                    </View>
+                                )}
+                                {productId.includes('1000') && (
+                                    <View style={[styles.badge, styles.bestValueBadge]}>
+                                        <Text style={styles.badgeText}>En İyi Değer</Text>
+                                    </View>
+                                )}
+
+                                <View style={[styles.iconContainer, { backgroundColor: IconConfig.bg }]}>
+                                    <IconComponent size={32} color={IconConfig.color} fill={IconConfig.color} />
+                                </View>
+
+                                <View style={styles.packageInfo}>
+                                    <Text style={styles.packageTitle}>{product.title || `${diamondAmount} Elmas`}</Text>
+                                    <View style={styles.diamondRow}>
+                                        <Diamond size={16} color="#60A5FA" fill="#60A5FA" />
+                                        <Text style={styles.diamondAmount}>+{diamondAmount}</Text>
+                                    </View>
+                                </View>
+
+                                <View style={styles.priceContainer}>
+                                    <Text style={styles.priceText}>{product.localizedPrice || product.displayPrice}</Text>
+                                </View>
+                            </TouchableOpacity>
+                        );
+                    })
+                )}
+
+                {/* Legal Links */}
                 <View style={styles.legalContainer}>
                     <TouchableOpacity style={styles.legalButton} onPress={() => setShowTermsModal(true)}>
-                        <FileText size={18} color="#718096" />
-                        <Text style={styles.legalButtonText}>Kullanım Koşulları</Text>
+                        <FileText size={16} color="#64748B" />
+                        <Text style={styles.legalText}>Kullanım Koşulları</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.legalButton} onPress={() => setShowPrivacyModal(true)}>
-                        <Shield size={18} color="#718096" />
-                        <Text style={styles.legalButtonText}>Gizlilik Politikası</Text>
+                        <Shield size={16} color="#64748B" />
+                        <Text style={styles.legalText}>Gizlilik Politikası</Text>
                     </TouchableOpacity>
                 </View>
+
+                <Text style={styles.disclaimer}>
+                    Satın almalar Apple/Google hesabınız üzerinden gerçekleştirilir.
+                    Elmaslar uygulama içi kullanım içindir ve para karşılığı iade edilemez.
+                </Text>
             </ScrollView>
 
             {/* Terms Modal */}
             <Modal visible={showTermsModal} animationType="slide" transparent>
                 <View style={styles.modalOverlay}>
-                    <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
                         <View style={styles.modalHeader}>
                             <Text style={styles.modalTitle}>Kullanım Koşulları</Text>
                             <TouchableOpacity onPress={() => setShowTermsModal(false)}>
-                                <X size={24} color="#4A5568" />
+                                <X size={24} color="#1F2937" />
                             </TouchableOpacity>
                         </View>
-                        <ScrollView style={styles.modalContent}>
+                        <ScrollView style={styles.modalBody}>
                             <Text style={styles.modalText}>
-                                <Text style={styles.modalSubtitle}>1. Genel Koşullar{'\n'}</Text>
-                                Bu uygulama içi satın almalar, Apple App Store veya Google Play Store üzerinden gerçekleştirilir. Satın aldığınız elmaslar yalnızca bu uygulama içinde kullanılabilir ve gerçek para karşılığı iade edilemez.{'\n\n'}
-
-                                <Text style={styles.modalSubtitle}>2. Ödeme ve Faturalandırma{'\n'}</Text>
-                                Tüm ödemeler, Apple veya Google hesabınız üzerinden yapılır. Fiyatlar yerel para biriminizde gösterilir ve vergiler dahil olabilir.{'\n\n'}
-
-                                <Text style={styles.modalSubtitle}>3. İade Politikası{'\n'}</Text>
-                                Uygulama içi satın almalar için iade talepleri Apple veya Google'ın politikalarına tabidir. Satın alınan ve kullanılan sanal ürünler iade edilemez.{'\n\n'}
-
-                                <Text style={styles.modalSubtitle}>4. Yaş Sınırlaması{'\n'}</Text>
-                                Bu uygulama çocuklar için tasarlanmıştır. Satın almalar ebeveyn veya vasi gözetiminde yapılmalıdır.{'\n\n'}
-
-                                <Text style={styles.modalSubtitle}>5. Değişiklikler{'\n'}</Text>
-                                Bu koşullar önceden bildirimde bulunmaksızın değiştirilebilir. Güncel koşulları düzenli olarak kontrol etmenizi öneririz.
+                                1. Elmas Satın Alımları{'\n\n'}
+                                Elmaslar, uygulama içi satın alma yoluyla elde edilir. Tüm satın almalar Apple App Store veya Google Play Store üzerinden işlenir.{'\n\n'}
+                                2. İade Politikası{'\n\n'}
+                                Elmas satın alımları geri iade edilemez. Teknik sorunlar için destek ekibimizle iletişime geçebilirsiniz.{'\n\n'}
+                                3. Kullanım{'\n\n'}
+                                Elmaslar sadece uygulama içi içerik satın almak için kullanılabilir.
                             </Text>
                         </ScrollView>
                     </View>
@@ -228,29 +411,18 @@ export default function DiamondPurchaseScreen() {
             {/* Privacy Modal */}
             <Modal visible={showPrivacyModal} animationType="slide" transparent>
                 <View style={styles.modalOverlay}>
-                    <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
                         <View style={styles.modalHeader}>
                             <Text style={styles.modalTitle}>Gizlilik Politikası</Text>
                             <TouchableOpacity onPress={() => setShowPrivacyModal(false)}>
-                                <X size={24} color="#4A5568" />
+                                <X size={24} color="#1F2937" />
                             </TouchableOpacity>
                         </View>
-                        <ScrollView style={styles.modalContent}>
+                        <ScrollView style={styles.modalBody}>
                             <Text style={styles.modalText}>
-                                <Text style={styles.modalSubtitle}>1. Toplanan Veriler{'\n'}</Text>
-                                Satın alma işlemleri sırasında herhangi bir ödeme bilgisi uygulamamız tarafından saklanmaz. Tüm ödeme işlemleri Apple veya Google tarafından güvenli bir şekilde işlenir.{'\n\n'}
-
-                                <Text style={styles.modalSubtitle}>2. Veri Kullanımı{'\n'}</Text>
-                                Satın alma geçmişiniz yalnızca elmas bakiyenizi takip etmek için kullanılır. Bu veriler üçüncü taraflarla paylaşılmaz.{'\n\n'}
-
-                                <Text style={styles.modalSubtitle}>3. Çocuk Gizliliği (COPPA){'\n'}</Text>
-                                Bu uygulama çocuklara yöneliktir ve COPPA (Children's Online Privacy Protection Act) düzenlemelerine uygun olarak tasarlanmıştır. 13 yaş altı kullanıcılardan kişisel bilgi toplanmaz.{'\n\n'}
-
-                                <Text style={styles.modalSubtitle}>4. Güvenlik{'\n'}</Text>
-                                Verileriniz endüstri standardı güvenlik önlemleri ile korunmaktadır.{'\n\n'}
-
-                                <Text style={styles.modalSubtitle}>5. İletişim{'\n'}</Text>
-                                Gizlilik politikamız hakkında sorularınız için bizimle iletişime geçebilirsiniz.
+                                Gizlilik Politikası{'\n\n'}
+                                Kişisel verilerinizin korunması bizim için önemlidir. Satın alma işlemlerinde yalnızca Apple/Google tarafından sağlanan anonim işlem bilgileri kullanılır.{'\n\n'}
+                                Hiçbir ödeme bilgisi (kredi kartı, banka hesabı vb.) tarafımızca saklanmaz.
                             </Text>
                         </ScrollView>
                     </View>
@@ -258,21 +430,29 @@ export default function DiamondPurchaseScreen() {
             </Modal>
         </View>
     );
+};
+
+// Wrapper component that checks IAP availability
+export default function DiamondPurchaseScreen() {
+    const router = useRouter();
+    const { diamonds } = useAppSelector((state) => state.currency);
+
+    if (!iapAvailable || !useIAP) {
+        return <IAPUnavailableScreen diamonds={diamonds} onBack={() => router.back()} />;
+    }
+
+    return <DiamondPurchaseWithIAP />;
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#F7FAFC' },
-    headerGradient: {
-        paddingHorizontal: 24,
-        paddingTop: 55,
-        paddingBottom: 24,
-        borderBottomLeftRadius: 24,
-        borderBottomRightRadius: 24,
+    container: {
+        flex: 1,
+        backgroundColor: '#F8FAFC',
     },
-    headerRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
+    headerGradient: {
+        paddingTop: 50,
+        paddingBottom: 30,
+        paddingHorizontal: 20,
     },
     backButton: {
         width: 40,
@@ -281,39 +461,52 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(255,255,255,0.2)',
         justifyContent: 'center',
         alignItems: 'center',
+        marginBottom: 16,
     },
-    headerCenter: {
+    headerContent: {
         alignItems: 'center',
-        gap: 4,
+        marginBottom: 20,
     },
-    title: {
-        fontSize: 22,
-        fontWeight: '800',
+    headerTitle: {
+        fontSize: 28,
+        fontWeight: 'bold',
         color: '#FFF',
+        marginTop: 8,
+    },
+    headerSubtitle: {
+        fontSize: 14,
+        color: 'rgba(255,255,255,0.8)',
+        marginTop: 4,
     },
     balanceContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'center',
-        marginTop: 20,
+        backgroundColor: 'rgba(255,255,255,0.2)',
+        paddingHorizontal: 20,
+        paddingVertical: 12,
+        borderRadius: 16,
+        alignSelf: 'center',
         gap: 8,
     },
     balanceText: {
-        fontSize: 32,
-        fontWeight: '800',
+        fontSize: 24,
+        fontWeight: 'bold',
         color: '#FFF',
     },
     balanceLabel: {
-        fontSize: 14,
+        fontSize: 12,
         color: 'rgba(255,255,255,0.8)',
-        marginLeft: 4,
     },
-    content: { flex: 1 },
-    contentContainer: { padding: 20, paddingBottom: 40 },
+    content: {
+        flex: 1,
+    },
+    contentContainer: {
+        padding: 20,
+    },
     sectionTitle: {
         fontSize: 20,
-        fontWeight: '700',
-        color: '#2D3748',
+        fontWeight: 'bold',
+        color: '#1F2937',
         marginBottom: 16,
     },
     packageCard: {
@@ -323,38 +516,36 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         padding: 16,
         marginBottom: 12,
-        borderWidth: 2,
-        borderColor: '#E2E8F0',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.05,
-        shadowRadius: 4,
+        shadowRadius: 8,
         elevation: 2,
     },
     popularCard: {
-        borderColor: '#F59E0B',
         borderWidth: 2,
+        borderColor: '#F59E0B',
     },
     bestValueCard: {
-        borderColor: '#8B5CF6',
         borderWidth: 2,
+        borderColor: '#8B5CF6',
     },
     badge: {
         position: 'absolute',
         top: -10,
         right: 16,
         backgroundColor: '#F59E0B',
-        paddingHorizontal: 10,
+        paddingHorizontal: 12,
         paddingVertical: 4,
-        borderRadius: 8,
+        borderRadius: 12,
     },
     bestValueBadge: {
         backgroundColor: '#8B5CF6',
     },
     badgeText: {
-        fontSize: 11,
-        fontWeight: '700',
         color: '#FFF',
+        fontSize: 12,
+        fontWeight: 'bold',
     },
     iconContainer: {
         width: 56,
@@ -362,83 +553,66 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         justifyContent: 'center',
         alignItems: 'center',
-        marginRight: 16,
     },
     packageInfo: {
         flex: 1,
+        marginLeft: 16,
     },
     packageTitle: {
-        fontSize: 18,
-        fontWeight: '700',
-        color: '#2D3748',
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#1F2937',
     },
     diamondRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 4,
         marginTop: 4,
+        gap: 4,
     },
     diamondAmount: {
         fontSize: 14,
-        fontWeight: '600',
         color: '#60A5FA',
+        fontWeight: '600',
     },
     priceContainer: {
-        backgroundColor: Colors.primary,
+        backgroundColor: '#F1F5F9',
         paddingHorizontal: 16,
-        paddingVertical: 10,
+        paddingVertical: 8,
         borderRadius: 12,
-        minWidth: 90,
-        alignItems: 'center',
     },
     priceText: {
-        fontSize: 15,
-        fontWeight: '700',
-        color: '#FFF',
-    },
-    infoBox: {
-        backgroundColor: '#EDF2F7',
-        borderRadius: 12,
-        padding: 16,
-        marginTop: 20,
-    },
-    infoTitle: {
-        fontSize: 14,
-        fontWeight: '700',
-        color: '#4A5568',
-        marginBottom: 8,
-    },
-    infoText: {
-        fontSize: 13,
-        color: '#718096',
-        lineHeight: 20,
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#1F2937',
     },
     legalContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        gap: 24,
         marginTop: 24,
-        gap: 12,
     },
     legalButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 8,
-        paddingVertical: 12,
-        paddingHorizontal: 16,
-        backgroundColor: '#FFF',
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: '#E2E8F0',
+        gap: 6,
     },
-    legalButtonText: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#4A5568',
+    legalText: {
+        color: '#64748B',
+        fontSize: 13,
+    },
+    disclaimer: {
+        textAlign: 'center',
+        color: '#94A3B8',
+        fontSize: 11,
+        marginTop: 16,
+        lineHeight: 16,
     },
     modalOverlay: {
         flex: 1,
         backgroundColor: 'rgba(0,0,0,0.5)',
         justifyContent: 'flex-end',
     },
-    modalContainer: {
+    modalContent: {
         backgroundColor: '#FFF',
         borderTopLeftRadius: 24,
         borderTopRightRadius: 24,
@@ -450,23 +624,30 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         padding: 20,
         borderBottomWidth: 1,
-        borderBottomColor: '#E2E8F0',
+        borderBottomColor: '#E5E7EB',
     },
     modalTitle: {
-        fontSize: 20,
-        fontWeight: '700',
-        color: '#2D3748',
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#1F2937',
     },
-    modalContent: {
+    modalBody: {
         padding: 20,
     },
     modalText: {
+        color: '#4B5563',
         fontSize: 14,
-        color: '#4A5568',
         lineHeight: 22,
     },
-    modalSubtitle: {
-        fontWeight: '700',
-        color: '#2D3748',
+    loadingOverlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0,0,0,0.7)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 999,
     },
 });
