@@ -45,6 +45,9 @@ function RootLayoutNav() {
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="game" />
+        <Stack.Screen name="diamond-purchase" />
+        <Stack.Screen name="avatar-settings" />
+        <Stack.Screen name="account-settings" />
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style="auto" />

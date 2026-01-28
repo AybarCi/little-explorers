@@ -16,8 +16,8 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Diamond, Check, ShoppingBag, Sparkles, Crown, Award } from 'lucide-react-native';
 import { useAppSelector } from '@/hooks/useAppSelector';
 import { useAppDispatch } from '@/hooks/useAppDispatch';
-import { updateUserDiamonds } from '@/store/slices/authSlice';
-import { initializeCurrency, loadCurrencyFromStorage, CURRENCY_CONSTANTS } from '@/store/slices/currencySlice';
+import { saveUserDiamonds } from '@/store/slices/authSlice';
+import { initializeCurrency, loadCurrencyFromStorage, setDiamonds, saveCurrencyToStorage, CURRENCY_CONSTANTS } from '@/store/slices/currencySlice';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/constants/colors';
 import Constants from 'expo-constants';
@@ -142,8 +142,7 @@ export default function ShopScreen() {
                 if (data.userProfile.diamonds !== undefined) {
                     const dbDiamonds = data.userProfile.diamonds;
                     setDiamondBalance(dbDiamonds);
-                    dispatch(updateUserDiamonds(dbDiamonds));
-                    // Also sync with currencySlice so homepage shows correct diamonds
+                    // Sync with currencySlice so homepage shows correct diamonds
                     const savedCurrency = await loadCurrencyFromStorage();
                     dispatch(initializeCurrency({
                         energy: savedCurrency?.energy ?? CURRENCY_CONSTANTS.MAX_ENERGY,
@@ -228,7 +227,18 @@ export default function ShopScreen() {
                                 setInventory(prev => [...prev, `${itemType}_${item.id}`]);
                                 const newBalance = data.new_diamond_balance ?? 0;
                                 setDiamondBalance(newBalance);
-                                dispatch(updateUserDiamonds(newBalance));
+                                // Update currency slice
+                                dispatch(setDiamonds(newBalance));
+                                // Persist to SecureStore for app restart
+                                await dispatch(saveUserDiamonds(newBalance)).unwrap();
+                                // Save to AsyncStorage for offline persistence
+                                const currencyState = await loadCurrencyFromStorage();
+                                if (currencyState) {
+                                    await saveCurrencyToStorage({
+                                        ...currencyState,
+                                        diamonds: newBalance,
+                                    });
+                                }
                                 Alert.alert('🎉 Tebrikler!', `"${item.name}" artık senin!`);
                             } else {
                                 Alert.alert('Hata', data.error || 'Satın alma başarısız');

@@ -188,6 +188,20 @@ export const restoreSession = createAsyncThunk(
           await updateSessionActivity();
         }
 
+        // Always refresh to get latest user data from database (including diamonds, energy, etc.)
+        console.log('Session valid, refreshing to get latest user data from DB...');
+        if (session.refresh_token) {
+          try {
+            const refreshResult = await dispatch(refreshSession(session.refresh_token)).unwrap();
+            console.log('User data refreshed from DB, diamonds:', refreshResult.user?.diamonds);
+            return { session: refreshResult.session, user: refreshResult.user, error: undefined };
+          } catch (refreshError) {
+            // If refresh fails, fall back to cached user data
+            console.warn('Failed to refresh user data, using cached:', refreshError);
+            return { session, user, error: undefined };
+          }
+        }
+
         return { session, user, error: undefined };
       }
 
@@ -297,6 +311,35 @@ export const deleteAccount = createAsyncThunk(
       return { success: true };
     } catch (error) {
       return rejectWithValue(error instanceof Error ? error.message : 'Failed to delete account');
+    }
+  }
+);
+
+// Async thunk to save diamonds and persist to SecureStore
+export const saveUserDiamonds = createAsyncThunk(
+  'auth/saveUserDiamonds',
+  async (newDiamonds: number, { getState, rejectWithValue }) => {
+    try {
+      const state = getState() as { auth: AuthState };
+      const { user } = state.auth;
+
+      if (!user) {
+        return rejectWithValue('No user logged in');
+      }
+
+      // Update user with new diamonds
+      const updatedUser = {
+        ...user,
+        diamonds: newDiamonds,
+      };
+
+      // Persist to SecureStore
+      await SecureStore.setItemAsync('auth_user', JSON.stringify(updatedUser));
+      console.log('User diamonds persisted to SecureStore:', newDiamonds);
+
+      return updatedUser;
+    } catch (error) {
+      return rejectWithValue(error instanceof Error ? error.message : 'Failed to save user diamonds');
     }
   }
 );
@@ -583,6 +626,9 @@ const authSlice = createSlice({
         state.user = null;
         state.session = null;
         state.error = null;
+      })
+      .addCase(saveUserDiamonds.fulfilled, (state, action) => {
+        state.user = action.payload;
       });
   },
 });

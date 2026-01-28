@@ -92,6 +92,11 @@ const currencySlice = createSlice({
             }
         },
 
+        // Set diamonds to a specific value (after purchase from shop)
+        setDiamonds: (state, action: PayloadAction<number>) => {
+            state.diamonds = action.payload;
+        },
+
         // Set initialization flag
         setInitialized: (state, action: PayloadAction<boolean>) => {
             state.isInitialized = action.payload;
@@ -250,6 +255,7 @@ export const {
     consumeEnergy,
     regenerateEnergy,
     addDiamonds,
+    setDiamonds,
     refillEnergyWithDiamonds,
     setInitialized,
     resetCurrency,

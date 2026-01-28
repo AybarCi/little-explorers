@@ -8,7 +8,8 @@ import {
     ActivityIndicator,
     ScrollView,
 } from 'react-native';
-import { X, Diamond, Play } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
+import { X, Diamond, Play, ShoppingCart } from 'lucide-react-native';
 import { useAppSelector } from '@/hooks/useAppSelector';
 import { useAppDispatch } from '@/hooks/useAppDispatch';
 import { addDiamonds, CURRENCY_CONSTANTS, saveCurrencyToStorage, saveDiamondsToDatabase } from '@/store/slices/currencySlice';
@@ -23,6 +24,7 @@ interface DiamondModalProps {
 }
 
 export default function DiamondModal({ visible, onClose }: DiamondModalProps) {
+    const router = useRouter();
     const dispatch = useAppDispatch();
     const { diamonds, energy, lastEnergyUpdate } = useAppSelector((state) => state.currency);
     const user = useAppSelector((state) => state.auth.user);
@@ -146,6 +148,19 @@ export default function DiamondModal({ visible, onClose }: DiamondModalProps) {
                             <Text style={styles.usageTitle}>Elmas Kullanımı:</Text>
                             <Text style={styles.usageItem}>• 50 💎 = Tam enerji dolumu</Text>
                         </View>
+
+                        <View style={styles.divider} />
+
+                        <TouchableOpacity
+                            style={styles.buyButton}
+                            onPress={() => {
+                                onClose();
+                                router.push('/diamond-purchase');
+                            }}
+                        >
+                            <ShoppingCart size={22} color="#FFF" />
+                            <Text style={styles.buyButtonText}>Elmas Satın Al</Text>
+                        </TouchableOpacity>
                     </ScrollView>
                 </View>
             </View>
@@ -283,5 +298,22 @@ const styles = StyleSheet.create({
     usageItem: {
         fontSize: 14,
         color: '#718096',
+    },
+    buyButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+        backgroundColor: '#8B5CF6',
+        paddingHorizontal: 32,
+        paddingVertical: 16,
+        borderRadius: 12,
+        width: '100%',
+        marginTop: 12,
+    },
+    buyButtonText: {
+        color: '#FFF',
+        fontSize: 18,
+        fontWeight: '700',
     },
 });
