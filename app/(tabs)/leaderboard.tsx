@@ -156,15 +156,28 @@ export default function LeaderboardScreen() {
 
     const renderAvatar = (item: LeaderboardEntry) => {
         const frameColor = item.frame_color || Colors.primary;
+        const hasFrame = !!item.frame_color;
+
+        const renderBadge = () => {
+            if (!item.badge_emoji) return null;
+            return (
+                <View style={styles.badgeOverlay}>
+                    <Text style={styles.badgeOverlayEmoji}>{item.badge_emoji}</Text>
+                </View>
+            );
+        };
 
         // Premium avatar with image
         if (item.avatar_image_key && AVATAR_IMAGES[item.avatar_image_key]) {
             return (
-                <View style={[styles.avatarContainer, { borderColor: frameColor, borderWidth: item.frame_color ? 3 : 0 }]}>
-                    <Image
-                        source={AVATAR_IMAGES[item.avatar_image_key]}
-                        style={styles.avatarImage}
-                    />
+                <View style={styles.avatarWrapper}>
+                    <View style={[styles.avatarContainer, { borderColor: frameColor, borderWidth: hasFrame ? 3 : 0 }]}>
+                        <Image
+                            source={AVATAR_IMAGES[item.avatar_image_key]}
+                            style={styles.avatarImage}
+                        />
+                    </View>
+                    {renderBadge()}
                 </View>
             );
         }
@@ -172,18 +185,24 @@ export default function LeaderboardScreen() {
         // Emoji avatar
         if (item.avatar_emoji) {
             return (
-                <View style={[styles.avatarContainer, styles.emojiAvatarContainer, { borderColor: frameColor, borderWidth: item.frame_color ? 3 : 0 }]}>
-                    <Text style={styles.emojiAvatar}>{item.avatar_emoji}</Text>
+                <View style={styles.avatarWrapper}>
+                    <View style={[styles.avatarContainer, styles.emojiAvatarContainer, { borderColor: frameColor, borderWidth: hasFrame ? 3 : 0 }]}>
+                        <Text style={styles.emojiAvatar}>{item.avatar_emoji}</Text>
+                    </View>
+                    {renderBadge()}
                 </View>
             );
         }
 
         // Default: first letter
         return (
-            <View style={[styles.avatarContainer, { borderColor: frameColor, borderWidth: item.frame_color ? 3 : 0 }]}>
-                <Text style={styles.avatarText}>
-                    {item.name?.charAt(0).toUpperCase() || '?'}
-                </Text>
+            <View style={styles.avatarWrapper}>
+                <View style={[styles.avatarContainer, { borderColor: frameColor, borderWidth: hasFrame ? 3 : 0 }]}>
+                    <Text style={styles.avatarText}>
+                        {item.name?.charAt(0).toUpperCase() || '?'}
+                    </Text>
+                </View>
+                {renderBadge()}
             </View>
         );
     };
@@ -206,15 +225,10 @@ export default function LeaderboardScreen() {
                 {renderAvatar(item)}
 
                 <View style={styles.userInfo}>
-                    <View style={styles.nameRow}>
-                        <Text style={[styles.userName, isCurrentUser && styles.currentUserName]}>
-                            {item.name}
-                            {isCurrentUser && ' (Sen)'}
-                        </Text>
-                        {item.badge_emoji && (
-                            <Text style={styles.badgeEmoji}>{item.badge_emoji}</Text>
-                        )}
-                    </View>
+                    <Text style={[styles.userName, isCurrentUser && styles.currentUserName]}>
+                        {item.name}
+                        {isCurrentUser && ' (Sen)'}
+                    </Text>
                     <Text style={styles.ageGroup}>{item.age_group} Yaş</Text>
                 </View>
 
@@ -424,13 +438,14 @@ const styles = StyleSheet.create({
         color: '#718096',
     },
     avatarContainer: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
+        width: 48,
+        height: 48,
+        borderRadius: 24,
         backgroundColor: Colors.primary,
         justifyContent: 'center',
         alignItems: 'center',
         marginLeft: 8,
+        overflow: 'hidden',
     },
     avatarText: {
         fontSize: 18,
@@ -438,15 +453,37 @@ const styles = StyleSheet.create({
         color: '#FFF',
     },
     avatarImage: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
+        width: 42,
+        height: 42,
+        borderRadius: 21,
     },
     emojiAvatarContainer: {
         backgroundColor: '#FFF',
     },
     emojiAvatar: {
         fontSize: 24,
+    },
+    avatarWrapper: {
+        position: 'relative',
+    },
+    badgeOverlay: {
+        position: 'absolute',
+        bottom: -2,
+        right: -4,
+        backgroundColor: '#FFF',
+        borderRadius: 10,
+        width: 20,
+        height: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.2,
+        shadowRadius: 2,
+        elevation: 2,
+    },
+    badgeOverlayEmoji: {
+        fontSize: 12,
     },
     nameRow: {
         flexDirection: 'row',
