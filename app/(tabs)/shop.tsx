@@ -42,6 +42,15 @@ const AVATAR_IMAGES: Record<string, any> = {
     sailor: require('@/assets/avatars/sailor.png'),
     pilot: require('@/assets/avatars/pilot.png'),
     king: require('@/assets/avatars/king.png'),
+    hero_bat_ninja: require('@/assets/avatars/hero_bat_ninja.png'),
+    hero_botanic: require('@/assets/avatars/hero_botanic.png'),
+    hero_fire: require('@/assets/avatars/hero_fire.png'),
+    hero_fire_knife: require('@/assets/avatars/hero_fire_knife.png'),
+    hero_ice: require('@/assets/avatars/hero_ice.png'),
+    hero_mad_warrior: require('@/assets/avatars/hero_mad_warrior.png'),
+    hero_poseidon: require('@/assets/avatars/hero_poseidon.png'),
+    hero_space: require('@/assets/avatars/hero_space.png'),
+    hero_warlock: require('@/assets/avatars/hero_warlock.png'),
 };
 
 interface ShopItem {
@@ -476,14 +485,14 @@ export default function ShopScreen() {
                     <>
                         {activeTab === 'avatars' && (
                             <>
-                                <Text style={styles.sectionTitle}>😊 Emoji Avatarlar</Text>
-                                <View style={styles.itemsGrid}>
-                                    {avatars.emoji.map(item => renderAvatarItem(item, false))}
-                                </View>
-
                                 <Text style={styles.sectionTitle}>✨ Premium Avatarlar</Text>
                                 <View style={styles.itemsGrid}>
                                     {avatars.premium.map(item => renderAvatarItem(item, true))}
+                                </View>
+
+                                <Text style={styles.sectionTitle}>😊 Emoji Avatarlar</Text>
+                                <View style={styles.itemsGrid}>
+                                    {avatars.emoji.map(item => renderAvatarItem(item, false))}
                                 </View>
                             </>
                         )}
