@@ -18,6 +18,15 @@ import { addDiamonds, saveCurrencyToStorage, saveDiamondsToDatabase } from '@/st
 import { saveUserDiamonds } from '@/store/slices/authSlice';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/constants/colors';
+import { createClient } from '@supabase/supabase-js';
+import Constants from 'expo-constants';
+
+const SUPABASE_URL =
+    (Constants.expoConfig?.extra as any)?.supabaseUrl ||
+    process.env.EXPO_PUBLIC_SUPABASE_URL;
+const SUPABASE_ANON_KEY =
+    (Constants.expoConfig?.extra as any)?.supabaseAnonKey ||
+    process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
 // --- SAFE IAP HOOK IMPORT ---
 let useIAP: any = null;
@@ -149,8 +158,25 @@ const DiamondPurchaseWithIAP = () => {
                 try {
                     await dispatch(saveDiamondsToDatabase({ userId: user.id, diamonds: newDiamonds })).unwrap();
                     await dispatch(saveUserDiamonds(newDiamonds)).unwrap();
+
+                    // Log purchase to database
+                    const purchaseProduct = products?.find((p: any) => (p.productId || p.id) === purchase.productId);
+                    if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+                        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                        await supabaseClient.from('diamond_purchases').insert({
+                            user_id: user.id,
+                            product_id: purchase.productId,
+                            diamond_amount: diamondAmount,
+                            price_amount: purchaseProduct?.price || null,
+                            price_currency: purchaseProduct?.currency || null,
+                            transaction_id: txId,
+                            platform: Platform.OS,
+                            status: 'completed',
+                        });
+                    }
+                    console.log('[DiamondPurchase] Purchase logged to database');
                 } catch (dbError) {
-                    console.error('Failed to save diamonds to database:', dbError);
+                    console.error('Failed to save diamonds/purchase to database:', dbError);
                 }
             }
 

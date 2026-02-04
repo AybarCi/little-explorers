@@ -29,3 +29,17 @@ declare module '*.webp' {
     const value: string;
     export default value;
 }
+
+// Meta Pixel (Facebook Pixel) global function
+interface FbqFunction {
+    (action: 'init', pixelId: string): void;
+    (action: 'track', eventName: string, params?: Record<string, unknown>): void;
+    (action: 'trackCustom', eventName: string, params?: Record<string, unknown>): void;
+}
+
+declare const fbq: FbqFunction | undefined;
+
+interface Window {
+    fbq?: FbqFunction;
+}
+
