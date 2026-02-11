@@ -54,9 +54,9 @@ Deno.serve(async (req: Request) => {
                     : { data: [] },
             ]);
 
-            const avatarsMap = new Map((avatarsRes.data || []).map((a: any) => [a.id, a]));
-            const framesMap = new Map((framesRes.data || []).map((f: any) => [f.id, f]));
-            const badgesMap = new Map((badgesRes.data || []).map((b: any) => [b.id, b]));
+            const avatarsMap = new Map<any, any>((avatarsRes.data || []).map((a: any) => [a.id, a]));
+            const framesMap = new Map<any, any>((framesRes.data || []).map((f: any) => [f.id, f]));
+            const badgesMap = new Map<any, any>((badgesRes.data || []).map((b: any) => [b.id, b]));
 
             leaderboard = (data || []).map((user, index) => {
                 const avatar = avatarsMap.get(user.current_avatar_id);
@@ -81,120 +81,61 @@ Deno.serve(async (req: Request) => {
                 };
             });
         } else if (type === "score") {
-            // Get sum of scores from game_progress per user
-            const { data, error } = await supabase
-                .rpc("get_score_leaderboard", { limit_count: limit });
+            // Get ALL users first to ensure everyone is listed
+            const { data: usersData, error: usersError } = await supabase
+                .from("users")
+                .select("id, full_name, age_group, current_avatar_id, current_frame_id, current_badge_id");
 
-            if (error) {
-                console.error("Score leaderboard RPC error:", error);
-                // Fallback: manual query if RPC doesn't exist
-                const { data: progressData, error: progressError } = await supabase
-                    .from("game_progress")
-                    .select("user_id, score");
+            if (usersError) throw usersError;
 
-                if (progressError) throw progressError;
+            // Get game progress to calculate scores
+            // Note: For larger scale, this should be an RPC or materialized view
+            const { data: progressData, error: progressError } = await supabase
+                .from("game_progress")
+                .select("user_id, score");
 
-                // Aggregate scores by user
-                const userScores: Record<string, number> = {};
-                (progressData || []).forEach((p: any) => {
-                    userScores[p.user_id] = (userScores[p.user_id] || 0) + (p.score || 0);
-                });
+            if (progressError) throw progressError;
 
-                // Get user details with avatar info
-                const userIds = Object.keys(userScores);
-                const { data: usersData } = await supabase
-                    .from("users")
-                    .select("id, full_name, age_group, current_avatar_id, current_frame_id, current_badge_id")
-                    .in("id", userIds);
+            // Aggregate scores by user
+            const userScores: Record<string, number> = {};
+            (progressData || []).forEach((p: any) => {
+                userScores[p.user_id] = (userScores[p.user_id] || 0) + (p.score || 0);
+            });
 
-                // Get avatar, frame, badge details
-                const avatarIds = (usersData || []).map(u => u.current_avatar_id).filter(Boolean);
-                const frameIds = (usersData || []).map(u => u.current_frame_id).filter(Boolean);
-                const badgeIds = (usersData || []).map(u => u.current_badge_id).filter(Boolean);
+            // Get avatar, frame, badge details
+            const avatarIds = (usersData || []).map(u => u.current_avatar_id).filter(Boolean);
+            const frameIds = (usersData || []).map(u => u.current_frame_id).filter(Boolean);
+            const badgeIds = (usersData || []).map(u => u.current_badge_id).filter(Boolean);
 
-                const [avatarsRes, framesRes, badgesRes] = await Promise.all([
-                    avatarIds.length > 0
-                        ? supabase.from("avatars").select("id, emoji, image_key, category").in("id", avatarIds)
-                        : { data: [] },
-                    frameIds.length > 0
-                        ? supabase.from("frames").select("id, color_primary, color_secondary").in("id", frameIds)
-                        : { data: [] },
-                    badgeIds.length > 0
-                        ? supabase.from("badges").select("id, emoji").in("id", badgeIds)
-                        : { data: [] },
-                ]);
+            const [avatarsRes, framesRes, badgesRes] = await Promise.all([
+                avatarIds.length > 0
+                    ? supabase.from("avatars").select("id, emoji, image_key, category").in("id", avatarIds)
+                    : { data: [] },
+                frameIds.length > 0
+                    ? supabase.from("frames").select("id, color_primary, color_secondary").in("id", frameIds)
+                    : { data: [] },
+                badgeIds.length > 0
+                    ? supabase.from("badges").select("id, emoji").in("id", badgeIds)
+                    : { data: [] },
+            ]);
 
-                const avatarsMap = new Map((avatarsRes.data || []).map((a: any) => [a.id, a]));
-                const framesMap = new Map((framesRes.data || []).map((f: any) => [f.id, f]));
-                const badgesMap = new Map((badgesRes.data || []).map((b: any) => [b.id, b]));
+            const avatarsMap = new Map<any, any>((avatarsRes.data || []).map((a: any) => [a.id, a]));
+            const framesMap = new Map<any, any>((framesRes.data || []).map((f: any) => [f.id, f]));
+            const badgesMap = new Map<any, any>((badgesRes.data || []).map((b: any) => [b.id, b]));
 
-                const usersMap = new Map((usersData || []).map((u: any) => [u.id, u]));
-
-                // Create leaderboard
-                leaderboard = Object.entries(userScores)
-                    .map(([userId, score]) => {
-                        const user = usersMap.get(userId);
-                        const avatar = user ? avatarsMap.get(user.current_avatar_id) : null;
-                        const frame = user ? framesMap.get(user.current_frame_id) : null;
-                        const badge = user ? badgesMap.get(user.current_badge_id) : null;
-
-                        return {
-                            user_id: userId,
-                            name: user?.full_name || "Bilinmeyen",
-                            value: score,
-                            age_group: user?.age_group || "",
-                            avatar_emoji: avatar?.emoji || null,
-                            avatar_image_key: avatar?.image_key || null,
-                            avatar_category: avatar?.category || null,
-                            frame_color: frame?.color_primary || null,
-                            frame_color_secondary: frame?.color_secondary || null,
-                            badge_emoji: badge?.emoji || null,
-                        };
-                    })
-                    .sort((a, b) => b.value - a.value)
-                    .slice(0, limit)
-                    .map((item, index) => ({ ...item, rank: index + 1 }));
-            } else {
-                // RPC succeeded
-                const userIds = (data || []).map((d: any) => d.user_id);
-                const { data: usersData } = await supabase
-                    .from("users")
-                    .select("id, current_avatar_id, current_frame_id, current_badge_id")
-                    .in("id", userIds);
-
-                const avatarIds = (usersData || []).map(u => u.current_avatar_id).filter(Boolean);
-                const frameIds = (usersData || []).map(u => u.current_frame_id).filter(Boolean);
-                const badgeIds = (usersData || []).map(u => u.current_badge_id).filter(Boolean);
-
-                const [avatarsRes, framesRes, badgesRes] = await Promise.all([
-                    avatarIds.length > 0
-                        ? supabase.from("avatars").select("id, emoji, image_key, category").in("id", avatarIds)
-                        : { data: [] },
-                    frameIds.length > 0
-                        ? supabase.from("frames").select("id, color_primary, color_secondary").in("id", frameIds)
-                        : { data: [] },
-                    badgeIds.length > 0
-                        ? supabase.from("badges").select("id, emoji").in("id", badgeIds)
-                        : { data: [] },
-                ]);
-
-                const avatarsMap = new Map((avatarsRes.data || []).map((a: any) => [a.id, a]));
-                const framesMap = new Map((framesRes.data || []).map((f: any) => [f.id, f]));
-                const badgesMap = new Map((badgesRes.data || []).map((b: any) => [b.id, b]));
-                const usersMap = new Map((usersData || []).map((u: any) => [u.id, u]));
-
-                leaderboard = (data || []).map((item: any, index: number) => {
-                    const user = usersMap.get(item.user_id);
-                    const avatar = user ? avatarsMap.get(user.current_avatar_id) : null;
-                    const frame = user ? framesMap.get(user.current_frame_id) : null;
-                    const badge = user ? badgesMap.get(user.current_badge_id) : null;
+            // Create leaderboard from users list
+            leaderboard = (usersData || [])
+                .map((user: any) => {
+                    const score = userScores[user.id] || 0;
+                    const avatar = avatarsMap.get(user.current_avatar_id);
+                    const frame = framesMap.get(user.current_frame_id);
+                    const badge = badgesMap.get(user.current_badge_id);
 
                     return {
-                        rank: index + 1,
-                        user_id: item.user_id,
-                        name: item.full_name,
-                        value: item.total_score || 0,
-                        age_group: item.age_group,
+                        user_id: user.id,
+                        name: user.full_name || "Bilinmeyen",
+                        value: score,
+                        age_group: user.age_group || "",
                         avatar_emoji: avatar?.emoji || null,
                         avatar_image_key: avatar?.image_key || null,
                         avatar_category: avatar?.category || null,
@@ -202,8 +143,10 @@ Deno.serve(async (req: Request) => {
                         frame_color_secondary: frame?.color_secondary || null,
                         badge_emoji: badge?.emoji || null,
                     };
-                });
-            }
+                })
+                .sort((a, b) => b.value - a.value)
+                .slice(0, limit)
+                .map((item, index) => ({ ...item, rank: index + 1 }));
         }
 
         return new Response(

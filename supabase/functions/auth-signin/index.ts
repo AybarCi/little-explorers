@@ -20,7 +20,7 @@ Deno.serve(async (req: Request) => {
 
     if (!email || !password) {
       return new Response(
-        JSON.stringify({ error: "Email and password are required" }),
+        JSON.stringify({ error: "E-posta ve şifre gereklidir" }),
         {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -39,8 +39,17 @@ Deno.serve(async (req: Request) => {
     });
 
     if (authError) {
+      // Translate known Supabase error messages to Turkish
+      const errorMessages: Record<string, string> = {
+        "Invalid login credentials": "E-posta veya şifre hatalı",
+        "Email not confirmed": "E-posta adresiniz henüz doğrulanmamış. Lütfen e-postanızı kontrol edin.",
+        "User not found": "Bu e-posta adresiyle kayıtlı bir hesap bulunamadı",
+        "Too many requests": "Çok fazla deneme yaptınız. Lütfen biraz bekleyin.",
+      };
+      const turkishError = errorMessages[authError.message] || "Giriş yapılırken bir hata oluştu";
+
       return new Response(
-        JSON.stringify({ error: authError.message }),
+        JSON.stringify({ error: turkishError }),
         {
           status: 401,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -50,7 +59,7 @@ Deno.serve(async (req: Request) => {
 
     if (!authData.user || !authData.session) {
       return new Response(
-        JSON.stringify({ error: "Failed to sign in" }),
+        JSON.stringify({ error: "Giriş yapılamadı. Lütfen tekrar deneyin." }),
         {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -66,7 +75,7 @@ Deno.serve(async (req: Request) => {
 
     if (userError || !userData) {
       return new Response(
-        JSON.stringify({ error: "User profile not found" }),
+        JSON.stringify({ error: "Kullanıcı profili bulunamadı" }),
         {
           status: 404,
           headers: { ...corsHeaders, "Content-Type": "application/json" },

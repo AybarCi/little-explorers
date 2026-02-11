@@ -55,6 +55,7 @@ interface AuthState {
   error: string | null;
   initialized: boolean;
   requiresRelogin: boolean;
+  verificationRequired: boolean;
 }
 
 const initialState: AuthState = {
@@ -64,11 +65,13 @@ const initialState: AuthState = {
   error: null,
   initialized: false,
   requiresRelogin: false,
+  verificationRequired: false,
 };
 
 interface SignupResponse {
-  session: AuthSession;
+  session: AuthSession | null;
   user: User;
+  verificationRequired?: boolean;
   error?: string;
 }
 
@@ -380,17 +383,20 @@ export const signup = createAsyncThunk(
       }
 
       const user: User = data.user;
-      const session: AuthSession = data.session;
+      const session: AuthSession | null = data.session;
+      const verificationRequired = data.verificationRequired || false;
 
-      // Session'ı da kaydet - BU ÇOK ÖNEMLİ!
+      // Session varsa kaydet
       if (session) {
         await SecureStore.setItemAsync('auth_session', JSON.stringify(session));
-        // Create session metadata for custom timeout tracking
         await updateSessionActivity();
       }
+
+      // User data her durumda (session olmasa bile profiling için) kaydedilebilir
+      // Ancak email doğrulanmamışsa bazı kısıtlamalar olabilir
       await SecureStore.setItemAsync('auth_user', JSON.stringify(user));
 
-      return { session, user };
+      return { session, user, verificationRequired };
     } catch (error) {
       return rejectWithValue(error instanceof Error ? error.message : 'Signup failed');
     }
@@ -534,6 +540,7 @@ const authSlice = createSlice({
   reducers: {
     clearError: (state) => {
       state.error = null;
+      state.verificationRequired = false;
     },
     updateUserPoints: (state, action: PayloadAction<number>) => {
       if (state.user) {
@@ -572,11 +579,21 @@ const authSlice = createSlice({
       .addCase(signup.pending, (state) => {
         state.loading = true;
         state.error = null;
+        state.verificationRequired = false;
       })
       .addCase(signup.fulfilled, (state, action) => {
         state.loading = false;
-        state.session = action.payload.session;
-        state.user = action.payload.user;
+        if (action.payload.verificationRequired) {
+          // Email doğrulaması gerekiyor - user/session'ı state'e KAYDETME
+          // Böylece routing guard anasayfaya yönlendirmez
+          state.verificationRequired = true;
+          state.user = null;
+          state.session = null;
+        } else {
+          state.session = action.payload.session;
+          state.user = action.payload.user;
+          state.verificationRequired = false;
+        }
       })
       .addCase(signup.rejected, (state, action) => {
         state.loading = false;
@@ -599,6 +616,7 @@ const authSlice = createSlice({
         state.user = null;
         state.session = null;
         state.error = null;
+        state.verificationRequired = false;
       })
       .addCase(refreshSession.pending, (state) => {
         state.loading = true;

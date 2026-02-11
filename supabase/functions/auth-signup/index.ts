@@ -28,12 +28,19 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const supabase = createClient(
+    // ANON_KEY ile signUp çağrısı — email confirmation ayarına uyar
+    const supabaseAuth = createClient(
+      Deno.env.get("SUPABASE_URL") || "",
+      Deno.env.get("SUPABASE_ANON_KEY") || ""
+    );
+
+    // SERVICE_ROLE_KEY ile DB işlemleri (profil oluşturma, silme vs.)
+    const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL") || "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || ""
     );
 
-    const { data: authData, error: authError } = await supabase.auth.signUp({
+    const { data: authData, error: authError } = await supabaseAuth.auth.signUp({
       email,
       password,
     });
@@ -61,7 +68,9 @@ Deno.serve(async (req: Request) => {
     // If email confirmation is required, session might be null
     // We still create the user profile
 
-    const { data: userData, error: userError } = await supabase
+    let userData;
+
+    const { data: insertData, error: insertError } = await supabaseAdmin
       .from("users")
       .insert([
         {
@@ -74,21 +83,45 @@ Deno.serve(async (req: Request) => {
       .select()
       .single();
 
-    if (userError) {
-      await supabase.auth.admin.deleteUser(authData.user.id);
-      return new Response(
-        JSON.stringify({ error: userError.message }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+    if (insertError) {
+      // 409 Conflict — profile already exists, fetch it instead
+      if (insertError.code === "23505") {
+        const { data: existingUser, error: fetchError } = await supabaseAdmin
+          .from("users")
+          .select("*")
+          .eq("email", authData.user.email)
+          .single();
+
+        if (fetchError || !existingUser) {
+          return new Response(
+            JSON.stringify({ error: "Kullanıcı profili bulunamadı" }),
+            {
+              status: 500,
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+            }
+          );
         }
-      );
+        userData = existingUser;
+      } else {
+        // Truly unrecoverable error — clean up auth user
+        await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
+        return new Response(
+          JSON.stringify({ error: "Hesap oluşturulurken bir hata oluştu" }),
+          {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+    } else {
+      userData = insertData;
     }
 
     return new Response(
       JSON.stringify({
         session: authData.session,
         user: userData,
+        verificationRequired: !authData.session,
       }),
       {
         status: 200,

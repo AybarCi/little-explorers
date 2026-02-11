@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -11,13 +11,24 @@ import {
   Image,
   Modal,
   Linking,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
-import { Link } from 'expo-router';
-import { Eye, EyeOff, UserPlus, AlertTriangle } from 'lucide-react-native';
+import { Link, useRouter } from 'expo-router';
+import { Eye, EyeOff, UserPlus, AlertTriangle, Mail, KeyRound } from 'lucide-react-native';
 import { useAppDispatch } from '@/hooks/useAppDispatch';
 import { useAppSelector } from '@/hooks/useAppSelector';
 import { signup, clearError } from '@/store/slices/authSlice';
 import { Colors } from '@/constants/colors';
+import Constants from 'expo-constants';
+import * as SecureStore from 'expo-secure-store';
+
+const SUPABASE_URL =
+  (Constants.expoConfig?.extra as any)?.supabaseUrl ||
+  process.env.EXPO_PUBLIC_SUPABASE_URL;
+const SUPABASE_ANON_KEY =
+  (Constants.expoConfig?.extra as any)?.supabaseAnonKey ||
+  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
 const ageGroups = [
   { value: '5-7', label: '5-7 Yaş' },
@@ -33,8 +44,16 @@ export default function SignUpScreen() {
   const [ageGroup, setAgeGroup] = useState('8-10');
   const [showPassword, setShowPassword] = useState(false);
   const [errorVisible, setErrorVisible] = useState(false);
+
+  // OTP states
+  const [otpCode, setOtpCode] = useState(['', '', '', '', '', '', '', '']);
+  const [verifyingOtp, setVerifyingOtp] = useState(false);
+  const [otpError, setOtpError] = useState('');
+  const otpRefs = useRef<(TextInput | null)[]>([]);
+
   const dispatch = useAppDispatch();
-  const { loading, error } = useAppSelector((state) => state.auth);
+  const router = useRouter();
+  const { loading, error, verificationRequired } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
     return () => {
@@ -51,6 +70,222 @@ export default function SignUpScreen() {
     dispatch(signup({ email, password, fullName, ageGroup }));
   };
 
+  // OTP handlers
+  const handleOtpChange = (value: string, index: number) => {
+    if (value.length > 1) {
+      const digits = value.replace(/\D/g, '').slice(0, 8);
+      const newOtp = [...otpCode];
+      for (let i = 0; i < digits.length; i++) {
+        if (index + i < 8) {
+          newOtp[index + i] = digits[i];
+        }
+      }
+      setOtpCode(newOtp);
+      const nextIndex = Math.min(index + digits.length, 7);
+      otpRefs.current[nextIndex]?.focus();
+      return;
+    }
+
+    const newOtp = [...otpCode];
+    newOtp[index] = value;
+    setOtpCode(newOtp);
+
+    if (value && index < 7) {
+      otpRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpKeyPress = (key: string, index: number) => {
+    if (key === 'Backspace' && !otpCode[index] && index > 0) {
+      otpRefs.current[index - 1]?.focus();
+      const newOtp = [...otpCode];
+      newOtp[index - 1] = '';
+      setOtpCode(newOtp);
+    }
+  };
+
+  const handleVerifyEmail = async () => {
+    const code = otpCode.join('');
+    if (code.length !== 8) {
+      setOtpError('Lütfen 8 haneli kodu eksiksiz girin');
+      return;
+    }
+
+    setVerifyingOtp(true);
+    setOtpError('');
+
+    try {
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/verify-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({
+          email,
+          otp_code: code,
+        }),
+      });
+
+      const data = await response.json() as {
+        success?: boolean;
+        error?: string;
+        session?: any;
+        user?: any;
+      };
+
+      if (!response.ok || !data.success) {
+        setOtpError(data.error || 'Doğrulama başarısız oldu');
+        return;
+      }
+
+      // Save session and user to SecureStore
+      if (data.session) {
+        await SecureStore.setItemAsync('auth_session', JSON.stringify(data.session));
+      }
+      if (data.user) {
+        await SecureStore.setItemAsync('auth_user', JSON.stringify(data.user));
+      }
+
+      // Redirect to signin so they can login with their new verified account
+      Alert.alert(
+        'Hesabın Doğrulandı! 🎉',
+        'E-postan başarıyla doğrulandı. Şimdi giriş yapabilirsin.',
+        [
+          {
+            text: 'Giriş Yap',
+            onPress: () => router.replace('/(auth)/signin'),
+          },
+        ]
+      );
+    } catch (err) {
+      setOtpError('Bağlantı hatası. Lütfen tekrar deneyin.');
+    } finally {
+      setVerifyingOtp(false);
+    }
+  };
+
+  const handleResendCode = async () => {
+    // Re-register triggers a new confirmation email
+    setOtpError('');
+    try {
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/auth-signup`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          full_name: fullName,
+          age_group: ageGroup,
+        }),
+      });
+
+      if (response.ok) {
+        Alert.alert('Başarılı', 'Yeni doğrulama kodu gönderildi!');
+      } else {
+        // If user already exists, try resend via auth API
+        const resendResponse = await fetch(`${SUPABASE_URL}/auth/v1/resend`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            apikey: SUPABASE_ANON_KEY || '',
+          },
+          body: JSON.stringify({
+            type: 'signup',
+            email,
+          }),
+        });
+        if (resendResponse.ok) {
+          Alert.alert('Başarılı', 'Yeni doğrulama kodu gönderildi!');
+        } else {
+          setOtpError('Kod gönderilemedi. Lütfen tekrar deneyin.');
+        }
+      }
+    } catch {
+      setOtpError('Kod gönderilemedi');
+    }
+  };
+
+  // ==================== OTP VERIFICATION SCREEN ====================
+  if (verificationRequired) {
+    return (
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.container}
+      >
+        <ScrollView contentContainerStyle={styles.otpScrollContent}>
+          <View style={styles.otpHeader}>
+            <View style={styles.otpIconContainer}>
+              <Mail size={40} color={Colors.brightYellow} />
+            </View>
+            <Text style={styles.otpTitle}>E-postanı Doğrula</Text>
+            <Text style={styles.otpSubtitle}>
+              <Text style={styles.otpEmailHighlight}>{email}</Text> adresine gönderdiğimiz 8 haneli kodu gir.
+            </Text>
+          </View>
+
+          {otpError ? (
+            <View style={styles.otpErrorBox}>
+              <Text style={styles.otpErrorText}>{otpError}</Text>
+            </View>
+          ) : null}
+
+          <View style={styles.otpContainer}>
+            {otpCode.map((digit, index) => (
+              <TextInput
+                key={index}
+                ref={(ref) => { otpRefs.current[index] = ref; }}
+                style={[styles.otpInput, digit ? styles.otpInputFilled : null]}
+                value={digit}
+                onChangeText={(value) => handleOtpChange(value, index)}
+                onKeyPress={({ nativeEvent }) => handleOtpKeyPress(nativeEvent.key, index)}
+                keyboardType="number-pad"
+                maxLength={index === 0 ? 8 : 1}
+                editable={!verifyingOtp}
+                selectTextOnFocus
+              />
+            ))}
+          </View>
+
+          <TouchableOpacity
+            style={[styles.otpButton, verifyingOtp && styles.otpButtonDisabled]}
+            onPress={handleVerifyEmail}
+            disabled={verifyingOtp || otpCode.join('').length !== 8}
+          >
+            {verifyingOtp ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              <>
+                <KeyRound size={20} color="white" />
+                <Text style={styles.otpButtonText}>Doğrula</Text>
+              </>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.resendButton}
+            onPress={handleResendCode}
+            disabled={verifyingOtp}
+          >
+            <Text style={styles.resendText}>
+              Kod gelmedi mi? <Text style={styles.resendLink}>Tekrar Gönder</Text>
+            </Text>
+          </TouchableOpacity>
+
+          <View style={styles.otpInfoBox}>
+            <Text style={styles.otpInfoText}>
+              💡 Gelen kutusunda bulamazsan spam klasörünü kontrol etmeyi unutma.
+            </Text>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    );
+  }
+
+  // ==================== SIGNUP FORM ====================
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -240,19 +475,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.brightYellow,
   },
-  errorContainer: {
-    backgroundColor: 'rgba(241, 111, 152, 0.2)',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 24,
-    borderLeftWidth: 4,
-    borderLeftColor: Colors.warmPink,
-  },
-  errorText: {
-    color: Colors.warmPink,
-    fontSize: 14,
-    fontWeight: '500',
-  },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
@@ -278,6 +500,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.warmPink,
     textAlign: 'center',
+    lineHeight: 20,
   },
   modalButton: {
     marginTop: 8,
@@ -403,5 +626,121 @@ const styles = StyleSheet.create({
   legalSeparator: {
     fontSize: 12,
     color: 'rgba(255,255,255,0.4)',
+  },
+  // ==================== OTP Verification Styles ====================
+  otpScrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 40,
+  },
+  otpHeader: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  otpIconContainer: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    backgroundColor: 'rgba(255, 215, 0, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  otpTitle: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: Colors.text,
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  otpSubtitle: {
+    fontSize: 15,
+    color: 'rgba(255,255,255,0.7)',
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  otpEmailHighlight: {
+    fontWeight: '700',
+    color: Colors.brightYellow,
+  },
+  otpErrorBox: {
+    backgroundColor: 'rgba(241, 111, 152, 0.2)',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: Colors.warmPink,
+  },
+  otpErrorText: {
+    fontSize: 13,
+    color: Colors.warmPink,
+    textAlign: 'center',
+    fontWeight: '600',
+  },
+  otpContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 6,
+    marginBottom: 28,
+  },
+  otpInput: {
+    width: 40,
+    height: 48,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    textAlign: 'center',
+    fontSize: 20,
+    fontWeight: '700',
+    color: Colors.text,
+  },
+  otpInputFilled: {
+    borderColor: Colors.brightYellow,
+    backgroundColor: 'rgba(255, 215, 0, 0.1)',
+  },
+  otpButton: {
+    backgroundColor: Colors.primary,
+    borderRadius: 12,
+    paddingVertical: 16,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+  },
+  otpButtonDisabled: {
+    opacity: 0.6,
+  },
+  otpButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  resendButton: {
+    alignItems: 'center',
+    marginTop: 20,
+    padding: 8,
+  },
+  resendText: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.6)',
+  },
+  resendLink: {
+    color: Colors.brightYellow,
+    fontWeight: '700',
+  },
+  otpInfoBox: {
+    backgroundColor: 'rgba(255, 215, 0, 0.1)',
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 24,
+    borderLeftWidth: 4,
+    borderLeftColor: Colors.brightYellow,
+  },
+  otpInfoText: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.7)',
+    lineHeight: 20,
   },
 });
